@@ -1,64 +1,91 @@
 use crate::client::Flight;
 use crate::error::FlightRadarError;
 
-// Take in borrowed param to prevent move error
-// https://stackoverflow.com/questions/28800121/what-do-i-have-to-do-to-solve-a-use-of-moved-value-error
-pub fn get_timestamps_from_flight(flight: &[Flight]) -> Result<Vec<String>, FlightRadarError> {
-    let mut return_val: Vec<String> = vec![];
+pub fn get_timestamps_from_flight(flights: &[Flight]) -> Result<Vec<String>, FlightRadarError> {
+    let mut return_val: Vec<String> = Vec::new();
 
-    for i in 0..flight.len() {
-        match flight.get(i) {
-            Some(first_flight) => {
-                for j in 0..first_flight.tracks.len() {
-                    match first_flight.tracks.get(j) {
-                        Some(first_flight_data) => {
-                            //println!("{}", first_flight_data.timestamp);
-                            return_val.push(first_flight_data.timestamp.to_string());
-                        }
-                        None => {
-                            return Err(FlightRadarError::General(
-                                "Couldn't get timestamp".to_string(),
-                            ))
-                        }
-                    }
-                }
-            }
-            None => {
-                return Err(FlightRadarError::General(
-                    "Couldn't get timestamp".to_string(),
-                ))
-            }
+    for flight in flights.iter() {
+        for data in flight.tracks.iter() {
+            return_val.push(data.timestamp.to_string());
         }
+    }
+
+    if return_val.is_empty() {
+        return Err(FlightRadarError::General(
+            "Couldn't parse out any timestamps".to_string(),
+        ));
     }
 
     return Ok(return_val);
 }
 
-pub fn get_gspeed_from_flight(flight: &[Flight]) -> Result<Vec<u32>, FlightRadarError> {
-    let mut return_val: Vec<u32> = vec![];
+pub fn get_gspeed_from_flight(flights: &[Flight]) -> Result<Vec<u32>, FlightRadarError> {
+    let mut return_val: Vec<u32> = Vec::new();
 
-    for i in 0..flight.len() {
-        match flight.get(i) {
-            Some(first_flight) => {
-                for j in 0..first_flight.tracks.len() {
-                    match first_flight.tracks.get(j) {
-                        Some(first_flight_data) => {
-                            return_val.push(first_flight_data.gspeed);
-                        }
-                        None => {
-                            return Err(FlightRadarError::General(
-                                "Couldn't get timestamp".to_string(),
-                            ))
-                        }
-                    }
-                }
-            }
-            None => {
-                return Err(FlightRadarError::General(
-                    "Couldn't get timestamp".to_string(),
-                ))
-            }
+    for flight in flights.iter() {
+        for data in flight.tracks.iter() {
+            return_val.push(data.gspeed);
         }
+    }
+
+    if return_val.is_empty() {
+        return Err(FlightRadarError::General(
+            "Couldn't parse out any groundspeed".to_string(),
+        ));
+    }
+
+    return Ok(return_val);
+}
+
+pub fn get_lat_from_flight(flights: &[Flight]) -> Result<Vec<f64>, FlightRadarError> {
+    let mut return_val: Vec<f64> = Vec::new();
+
+    for flight in flights.iter() {
+        for data in flight.tracks.iter() {
+            return_val.push(data.lat);
+        }
+    }
+
+    if return_val.is_empty() {
+        return Err(FlightRadarError::General(
+            "Couldn't parse out any latitude".to_string(),
+        ));
+    }
+
+    return Ok(return_val);
+}
+
+pub fn get_lon_from_flight(flights: &[Flight]) -> Result<Vec<f64>, FlightRadarError> {
+    let mut return_val: Vec<f64> = Vec::new();
+
+    for flight in flights.iter() {
+        for data in flight.tracks.iter() {
+            return_val.push(data.lon);
+        }
+    }
+
+    if return_val.is_empty() {
+        return Err(FlightRadarError::General(
+            "Couldn't parse out any longitude".to_string(),
+        ));
+    }
+
+    return Ok(return_val);
+}
+
+pub fn get_alt_from_flight(flights: &[Flight]) -> Result<Vec<u32>, FlightRadarError> {
+    let mut return_val: Vec<u32> = Vec::new();
+
+    for flight in flights.iter() {
+        for data in flight.tracks.iter() {
+            return_val.push(data.alt);
+        }
+    }
+
+    if return_val.is_empty() {
+        return Err(FlightRadarError::General(
+            "Couldn't parse out any altitude".to_string(),
+        ));
     }
 
     return Ok(return_val);
