@@ -25,5 +25,10 @@ async fn main() {
     println!("Timestamps: {:?}", get_timestamps_from_flight(&flight_list));
     println!("Latitudes: {:?}", get_lat_from_flight(&flight_list));
     println!("Longitudes: {:?}", get_lon_from_flight(&flight_list));
-    println!("Altitudes: {:?}", get_alt_from_flight(&flight_list))
+    println!("Altitudes: {:?}", get_alt_from_flight(&flight_list));
+    println!("Vspeeds: {:?}", get_vspeed_from_flight(&flight_list));
+    println!("Tracks: {:?}", get_track_from_flight(&flight_list));
+    println!("Squacks: {:?}", get_squack_from_flight(&flight_list));
+    println!("Callsigns: {:?}", get_callsign_from_flight(&flight_list));
+    println!("Sources: {:?}", get_source_from_flight(&flight_list));
 }
