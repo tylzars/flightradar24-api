@@ -1,5 +1,5 @@
 use dotenv::dotenv;
-use flightradar24_api::client::FlightRadarClient;
+use flightradar24_api::client::{get_timestamps_from_flight, FlightRadarClient};
 use tokio;
 
 #[tokio::main]
@@ -9,7 +9,7 @@ async fn main() {
 
     let client = FlightRadarClient::new(api_key);
 
-    let flight_id = "34242a02"; // Must be hexcode
+    let flight_id = "390163bf"; // Must be hexcode
 
     let flight_list: Vec<flightradar24_api::client::Flight>;
 
@@ -21,22 +21,18 @@ async fn main() {
         }
     }
 
-    for i in 0..flight_list.len() {
-        match flight_list.get(i) {
-            Some(first_flight) => {
-                for j in 0..first_flight.tracks.len() {
-                    match first_flight.tracks.get(j) {
-                        Some(first_flight_data) => {
-                            println!(
-                                "Timestamp is: {} with ground speed of {}",
-                                first_flight_data.timestamp, first_flight_data.gspeed
-                            )
-                        }
-                        None => eprintln!("Error getting data from item"),
-                    }
-                }
+    match get_timestamps_from_flight(flight_list) {
+        Ok(timestamps) => {
+            for i in 0..timestamps.len() {
+                println!(
+                    "Timestamp {} is {}",
+                    i,
+                    timestamps.get(i).unwrap_or(&String::from("N/A")) // Yea this isn't the right way to do this...
+                );
             }
-            None => eprintln!("Error getting item"),
+        }
+        Err(e) => {
+            eprintln!("Error parsing flight data: {}", e);
         }
     }
 }
