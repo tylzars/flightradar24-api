@@ -49,37 +49,6 @@ impl FlightRadarClient {
     }
 }
 
-pub fn get_timestamps_from_flight(flight: Vec<Flight>) -> Result<Vec<String>, FlightRadarError> {
-    let mut return_val: Vec<String> = vec![];
-
-    for i in 0..flight.len() {
-        match flight.get(i) {
-            Some(first_flight) => {
-                for j in 0..first_flight.tracks.len() {
-                    match first_flight.tracks.get(j) {
-                        Some(first_flight_data) => {
-                            //println!("{}", first_flight_data.timestamp);
-                            return_val.push(first_flight_data.timestamp.to_string());
-                        }
-                        None => {
-                            return Err(FlightRadarError::General(
-                                "Couldn't get timestamp".to_string(),
-                            ))
-                        }
-                    }
-                }
-            }
-            None => {
-                return Err(FlightRadarError::General(
-                    "Couldn't get timestamp".to_string(),
-                ))
-            }
-        }
-    }
-
-    return Ok(return_val);
-}
-
 #[derive(Debug, Deserialize)]
 pub struct Track {
     pub timestamp: String, // Possibly use Chrono here for time??

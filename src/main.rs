@@ -1,5 +1,6 @@
 use dotenv::dotenv;
-use flightradar24_api::client::{get_timestamps_from_flight, FlightRadarClient};
+use flightradar24_api::client::FlightRadarClient;
+use flightradar24_api::flight_tracks_helper::{get_gspeed_from_flight, get_timestamps_from_flight};
 use tokio;
 
 #[tokio::main]
@@ -21,13 +22,28 @@ async fn main() {
         }
     }
 
-    match get_timestamps_from_flight(flight_list) {
+    match get_timestamps_from_flight(&flight_list) {
         Ok(timestamps) => {
             for i in 0..timestamps.len() {
                 println!(
                     "Timestamp {} is {}",
                     i,
                     timestamps.get(i).unwrap_or(&String::from("N/A")) // Yea this isn't the right way to do this...
+                );
+            }
+        }
+        Err(e) => {
+            eprintln!("Error parsing flight data: {}", e);
+        }
+    }
+
+    match get_gspeed_from_flight(&flight_list) {
+        Ok(timestamps) => {
+            for i in 0..timestamps.len() {
+                println!(
+                    "Timestamp {} is {}",
+                    i,
+                    timestamps.get(i).unwrap_or(&0) // Yea this isn't the right way to do this...
                 );
             }
         }
