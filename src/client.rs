@@ -1,8 +1,7 @@
-use crate::error::FlightradarError;
+use crate::error::FlightRadarError;
 use reqwest::Client;
 use serde::Deserialize;
 
-/// A basic API client for Flightradar24 with Bearer authentication.
 pub struct FlightRadarClient {
     client: Client,
     base_url: String,
@@ -11,10 +10,8 @@ pub struct FlightRadarClient {
 
 impl FlightRadarClient {
     /// Creates a new instance of the client.
-    ///
     /// # Arguments
-    ///
-    /// * `api_key` - Your Flightradar24 API key.
+    ///   * `api_key` - Your Flightradar24 API key.
     pub fn new(api_key: String) -> Self {
         FlightRadarClient {
             client: Client::new(),
@@ -25,15 +22,11 @@ impl FlightRadarClient {
     }
 
     /// Fetches flight information by flight ID.
-    ///
     /// # Arguments
-    ///
-    /// * `flight_id` - The identifier for the flight.
-    ///
+    ///   * `flight_id` - The identifier for the flight.
     /// # Returns
-    ///
-    /// A `Flight` struct on success or a `FlightradarError` on failure.
-    pub async fn get_flight_by_id(&self, flight_id: &str) -> Result<Vec<Flight>, FlightradarError> {
+    ///   A `Flight` struct on success or a `FlightRadarError` on failure.
+    pub async fn get_flight_by_id(&self, flight_id: &str) -> Result<Vec<Flight>, FlightRadarError> {
         // Construct the URL (adjust the endpoint as per the actual API documentation)
         let url = format!("{}flight-tracks?flight_id={}", self.base_url, flight_id);
 
@@ -41,26 +34,24 @@ impl FlightRadarClient {
         let response = self
             .client
             .get(&url)
-            .header("Accept-Version", "v1")
-            .bearer_auth(&self.api_key) // This line adds the "Authorization: Bearer <API_KEY>" header.
+            .header("Accept-Version", "v1") // Add "Accept-Version: v1"
+            .bearer_auth(&self.api_key) // Add "Authorization: Bearer <API_KEY>"
             .send()
             .await?;
-            
+
         let text = response.text().await?;
-        
+
         // Parse the JSON response as an array of flights.
-        let flights: Vec<Flight> = serde_json::from_str(&text)
-            .map_err(|e| FlightradarError::Parsing(e.to_string()))?;
+        let flights: Vec<Flight> =
+            serde_json::from_str(&text).map_err(|e| FlightRadarError::Parsing(e.to_string()))?;
 
         Ok(flights)
     }
 }
 
-/// A sample data structure representing flight data returned from the API.
-/// Adjust the fields according to the actual API response.
 #[derive(Debug, Deserialize)]
 pub struct Track {
-    pub timestamp: String, // Consider using chrono for proper date/time handling.
+    pub timestamp: String, // Possibly use Chrono here for time??
     pub lat: f64,
     pub lon: f64,
     pub alt: u32,
