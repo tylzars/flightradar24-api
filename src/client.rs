@@ -30,10 +30,17 @@ impl FlightRadarClient {
         &self,
         flight_id: &str,
     ) -> Result<Vec<Flight>, FlightRadarError> {
-        // Construct the URL (adjust the endpoint as per the actual API documentation)
-        let url = format!("{}flight-tracks?flight_id={}", self.base_url, flight_id);
+        // If value isn't valid hexadecimal, exit function and raise error
+        // TODO: Make this not work this way and instead work the right way!!!!
+        if let Ok(uval) = u64::from_str_radix(flight_id, 16) {
+        } else {
+            (Err(FlightRadarError::General(
+                "period: Invalid Arguement".to_string(),
+            )))?
+        }
 
-        // Send the GET request with Bearer authentication.
+        // Make URL and GET
+        let url = format!("{}flight-tracks?flight_id={}", self.base_url, flight_id);
         let response = self
             .client
             .get(&url)
@@ -42,22 +49,30 @@ impl FlightRadarClient {
             .send()
             .await?;
 
+        // Parse
         let text = response.text().await?;
-
-        //println!("{:?}", text);
-
-        // Parse the JSON response as an array of flights.
         let flights: Vec<Flight> =
             serde_json::from_str(&text).map_err(|e| FlightRadarError::Parsing(e.to_string()))?;
 
         Ok(flights)
     }
 
-    pub async fn get_api_usage(&self) -> Result<ApiUsageResponse, FlightRadarError> {
-        // Construct the URL (adjust the endpoint as per the actual API documentation)
-        let url = format!("{}usage", self.base_url);
+    /// Fetches API usage details over period
+    /// # Arguments
+    ///   * `period` - Backwards time to gather usage (Allowed: 24h | 7d | 30d | 1y)
+    /// # Returns
+    ///   A `ApiUsageResponse` struct on success or a `FlightRadarError` on failure.
+    pub async fn get_api_usage(&self, period: &str) -> Result<ApiUsageResponse, FlightRadarError> {
+        // If value isn't valid, exit function and raise error
+        (match period {
+            "24h" | "7d" | "30d" | "1y" => Ok(()),
+            _ => Err(FlightRadarError::General(
+                "period: Invalid Arguement".to_string(),
+            )),
+        })?;
 
-        // Send the GET request with Bearer authentication.
+        // Make URL and GET
+        let url = format!("{}usage?period={}", self.base_url, period);
         let response = self
             .client
             .get(&url)
@@ -66,11 +81,8 @@ impl FlightRadarClient {
             .send()
             .await?;
 
+        // Parse
         let text = response.text().await?;
-
-        //println!("{:?}", text);
-
-        // Parse the JSON response as an array of flights.
         let usage: ApiUsageResponse =
             serde_json::from_str(&text).map_err(|e| FlightRadarError::Parsing(e.to_string()))?;
 
@@ -80,7 +92,7 @@ impl FlightRadarClient {
 
 #[derive(Debug, Deserialize)]
 pub struct Track {
-    pub timestamp: String, // Possibly use Chrono here for time??
+    pub timestamp: String,
     pub lat: f64,
     pub lon: f64,
     pub alt: u32,
