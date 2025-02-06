@@ -1,5 +1,7 @@
 use dotenv::dotenv;
-use flightradar24_api::client::FlightRadarClient;
+use flightradar24_api::client::{
+    Airline, Airport, AirportLite, ApiUsageResponse, FlightRadarClient,
+};
 use flightradar24_api::flight_tracks_helper::*;
 
 #[tokio::main]
@@ -36,17 +38,39 @@ async fn main() {
             Ok(usage) => usage,
             Err(e) => {
                 eprintln!("Error fetching api usage data: {}", e);
-                flightradar24_api::client::ApiUsageResponse {
-                    data: vec![flightradar24_api::client::ApiEndpointUsage {
-                        endpoint: "unknown".to_string(),
-                        metadata: "unknown".to_string(),
-                        request_count: 0,
-                        results: 0,
-                        credits: 0,
-                    }],
-                }
+                ApiUsageResponse::default()
             }
         };
 
-    println!("Usage: {:?}", api_usage)
+    println!("Usage: {:?}", api_usage);
+
+    let airline_info = match client.get_airline_by_icao("AAA").await {
+        Ok(airline) => airline,
+        Err(e) => {
+            eprintln!("Error fetching flight data: {}", e);
+            Airline::default()
+        }
+    };
+
+    println!("Airline Info: {:?}", airline_info);
+
+    let airport_info = match client.get_airport_by_code("MCO").await {
+        Ok(airline) => airline,
+        Err(e) => {
+            eprintln!("Error fetching flight data: {}", e);
+            Airport::default()
+        }
+    };
+
+    println!("Airport Info: {:?}", airport_info);
+
+    let airport_info = match client.get_airport_lite_by_code("MCO").await {
+        Ok(airline) => airline,
+        Err(e) => {
+            eprintln!("Error fetching flight data: {}", e);
+            AirportLite::default()
+        }
+    };
+
+    println!("Airport Lite Info: {:?}", airport_info);
 }

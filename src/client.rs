@@ -21,6 +21,81 @@ impl FlightRadarClient {
         }
     }
 
+    /// Fetches airline information by ICAO.
+    /// # Arguments
+    ///   * `icao` - The identifier for the airline.
+    /// # Returns
+    ///   A `Airline` struct on success or a `FlightRadarError` on failure.
+    pub async fn get_airline_by_icao(&self, icao: &str) -> Result<Airline, FlightRadarError> {
+        // Make URL and GET
+        let url = format!("{}static/airlines/{}/light", self.base_url, icao);
+        let response = self
+            .client
+            .get(&url)
+            .header("Accept-Version", "v1") // Add "Accept-Version: v1"
+            .bearer_auth(&self.api_key) // Add "Authorization: Bearer <API_KEY>"
+            .send()
+            .await?;
+
+        // Parse
+        let text = response.text().await?;
+        let airline: Airline =
+            serde_json::from_str(&text).map_err(|e| FlightRadarError::Parsing(e.to_string()))?;
+
+        Ok(airline)
+    }
+
+    /// Fetches airport information by code.
+    /// # Arguments
+    ///   * `code` - The identifier for the airport.
+    /// # Returns
+    ///   A `Airport` struct on success or a `FlightRadarError` on failure.
+    pub async fn get_airport_by_code(&self, code: &str) -> Result<Airport, FlightRadarError> {
+        // Make URL and GET
+        let url = format!("{}static/airports/{}/full", self.base_url, code);
+        let response = self
+            .client
+            .get(&url)
+            .header("Accept-Version", "v1") // Add "Accept-Version: v1"
+            .bearer_auth(&self.api_key) // Add "Authorization: Bearer <API_KEY>"
+            .send()
+            .await?;
+
+        // Parse
+        let text = response.text().await?;
+        let airport: Airport =
+            serde_json::from_str(&text).map_err(|e| FlightRadarError::Parsing(e.to_string()))?;
+
+        Ok(airport)
+    }
+
+    /// Fetches airport information by code.
+    /// # Arguments
+    ///   * `code` - The identifier for the airport.
+    /// # Returns
+    ///   A `Airport` struct on success or a `FlightRadarError` on failure.
+    pub async fn get_airport_lite_by_code(
+        &self,
+        code: &str,
+    ) -> Result<AirportLite, FlightRadarError> {
+        // Make URL and GET
+        let url = format!("{}static/airports/{}/light", self.base_url, code);
+        let response = self
+            .client
+            .get(&url)
+            .header("Accept-Version", "v1") // Add "Accept-Version: v1"
+            .bearer_auth(&self.api_key) // Add "Authorization: Bearer <API_KEY>"
+            .send()
+            .await?;
+
+        // Parse
+        let text = response.text().await?;
+        let airport: AirportLite =
+            serde_json::from_str(&text).map_err(|e| FlightRadarError::Parsing(e.to_string()))?;
+
+        Ok(airport)
+    }
+
     /// Fetches flight information by flight ID.
     /// # Arguments
     ///   * `flight_id` - The identifier for the flight.
@@ -31,12 +106,10 @@ impl FlightRadarClient {
         flight_id: &str,
     ) -> Result<Vec<Flight>, FlightRadarError> {
         // If value isn't valid hexadecimal, exit function and raise error
-        // TODO: Make this not work this way and instead work the right way!!!!
-        if let Ok(uval) = u64::from_str_radix(flight_id, 16) {
-        } else {
-            (Err(FlightRadarError::General(
-                "period: Invalid Arguement".to_string(),
-            )))?
+        if u64::from_str_radix(flight_id, 16).is_err() {
+            return Err(FlightRadarError::General(
+                "period: Invalid Argument".to_string(),
+            ));
         }
 
         // Make URL and GET
@@ -90,7 +163,7 @@ impl FlightRadarClient {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Default)]
 pub struct Track {
     pub timestamp: String,
     pub lat: f64,
@@ -104,23 +177,63 @@ pub struct Track {
     pub source: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Default)]
 pub struct Flight {
     #[serde(rename = "fr24_id")]
     pub id: String,
     pub tracks: Vec<Track>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Default)]
 pub struct ApiUsageResponse {
     pub data: Vec<ApiEndpointUsage>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Default)]
 pub struct ApiEndpointUsage {
     pub endpoint: String,
     pub metadata: String,
     pub request_count: u32,
     pub results: u32,
     pub credits: u32,
+}
+
+#[derive(Debug, Deserialize, Default)]
+pub struct Airline {
+    pub name: String,
+    pub iata: Option<String>,
+    pub icao: String,
+}
+
+#[derive(Debug, Deserialize, Default)]
+pub struct Airport {
+    pub name: String,
+    pub iata: String,
+    pub icao: String,
+    pub lon: f64,
+    pub lat: f64,
+    pub elevation: i32,
+    pub country: Country,
+    pub city: String,
+    pub state: Option<String>,
+    pub timezone: Timezone,
+}
+
+#[derive(Debug, Deserialize, Default)]
+pub struct Country {
+    pub code: String,
+    pub name: String,
+}
+
+#[derive(Debug, Deserialize, Default)]
+pub struct Timezone {
+    pub name: String,
+    pub offset: i32,
+}
+
+#[derive(Debug, Deserialize, Default)]
+pub struct AirportLite {
+    pub name: String,
+    pub iata: String,
+    pub icao: String,
 }
