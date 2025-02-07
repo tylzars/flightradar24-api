@@ -15,7 +15,12 @@ async fn main() {
         east: -4.115,
     };
 
-    let live_flight_full = match client.get_live_flight(&bounds).await {
+    let input = FullLiveFlightQuery {
+        squawks: vec![22, 33, 55],
+        ..FullLiveFlightQuery::default()
+    };
+
+    let live_flight_full = match client.get_live_flight(&bounds, Some(&input)).await {
         Ok(live_data) => live_data,
         Err(e) => {
             eprintln!("Error fetching flight data: {}", e);

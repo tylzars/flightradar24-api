@@ -103,13 +103,23 @@ impl FlightRadarClient {
     pub async fn get_live_flight(
         &self,
         bounds: &Bounds,
-        //other_queries: Option<&FullLiveFlightPositionQuery>, //TODO
+        other_queries: Option<&FullLiveFlightQuery>, //TODO: Should this be an option?
     ) -> Result<FullLiveFlightResponse, FlightRadarError> {
         // Make URL and GET
         let bounds_str = format!(
             "?bounds={},{},{},{}",
             bounds.north, bounds.south, bounds.west, bounds.east
         );
+
+        //TODO: Figure out how to implement for every member of struct
+        let other_query_in = match other_queries {
+            Some(data) => data,
+            _ => &FullLiveFlightQuery::default(),
+        };
+        if !other_query_in.squawks.is_empty() {
+            println!("{:?}", other_queries.unwrap().squawks)
+        }
+
         let url = format!("{}live/flight-positions/full{}", self.base_url, bounds_str);
         let response = self
             .client
