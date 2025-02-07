@@ -16,10 +16,10 @@ async fn main() {
     };
 
     let live_flight_full = match client.get_live_flight(&bounds).await {
-        Ok(airline) => airline,
+        Ok(live_data) => live_data,
         Err(e) => {
             eprintln!("Error fetching flight data: {}", e);
-            AirportLite::default()
+            FullLiveFlightResponse::default()
         }
     };
 

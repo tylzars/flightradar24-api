@@ -99,23 +99,18 @@ impl FlightRadarClient {
     /// # Arguments
     ///   * `bounds` - The bounds of an area to get live information
     /// # Returns
-    ///   A `IDK` struct on success or a `FlightRadarError` on failure.
+    ///   A `FullLiveFlightResponse` struct on success or a `FlightRadarError` on failure.
     pub async fn get_live_flight(
         &self,
         bounds: &Bounds,
         //other_queries: Option<&FullLiveFlightPositionQuery>, //TODO
-    ) -> Result<AirportLite, FlightRadarError> {
+    ) -> Result<FullLiveFlightResponse, FlightRadarError> {
         // Make URL and GET
-
         let bounds_str = format!(
             "?bounds={},{},{},{}",
             bounds.north, bounds.south, bounds.west, bounds.east
         );
-
         let url = format!("{}live/flight-positions/full{}", self.base_url, bounds_str);
-
-        println!("{:?}", url);
-
         let response = self
             .client
             .get(&url)
@@ -126,10 +121,10 @@ impl FlightRadarClient {
 
         // Parse
         let text = response.text().await?;
-        println!("{:?}", text);
-        //let airport: AirportLite = serde_json::from_str(&text).map_err(|e| FlightRadarError::Parsing(e.to_string()))?;
+        let live_data: FullLiveFlightResponse =
+            serde_json::from_str(&text).map_err(|e| FlightRadarError::Parsing(e.to_string()))?;
 
-        Ok(AirportLite::default())
+        Ok(live_data)
     }
 
     /// Fetches flight information by flight ID.
@@ -276,7 +271,7 @@ pub struct AirportLite {
 
 /// Represents a query for flight positions.
 #[derive(Debug, Deserialize, Default)]
-pub struct FullLiveFlightPositionQuery {
+pub struct FullLiveFlightQuery {
     pub flights: Vec<String>,
     pub callsigns: Vec<String>,
     pub registrations: Vec<String>,
@@ -308,4 +303,37 @@ pub struct Bounds {
 pub struct ApiRange {
     pub min: u32,
     pub max: u32,
+}
+
+#[derive(Deserialize, Debug, Default)]
+pub struct FullLiveFlightResponse {
+    pub data: Vec<FullLiveFlightData>,
+}
+
+#[derive(Deserialize, Debug, Default)]
+pub struct FullLiveFlightData {
+    pub fr24_id: String,
+    pub flight: String,
+    pub callsign: String,
+    pub lat: f64,
+    pub lon: f64,
+    pub track: u32,
+    pub alt: u32,
+    pub gspeed: u32,
+    pub vspeed: u32,
+    pub squawk: String,
+    pub timestamp: String,
+    pub source: String,
+    pub hex: String,
+    // `type` is a reserved keyword in Rust so we rename it to `type_field`
+    #[serde(rename = "type")]
+    pub type_field: String,
+    pub reg: String,
+    pub painted_as: String,
+    pub operating_as: String,
+    pub orig_iata: String,
+    pub orig_icao: String,
+    pub dest_iata: String,
+    pub dest_icao: String,
+    pub eta: String,
 }
