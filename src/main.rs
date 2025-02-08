@@ -16,7 +16,7 @@ async fn main() {
     };
 
     let input = FullLiveFlightQuery {
-        squawks: vec![22, 33, 55],
+        squawks: vec![2222, 3333, 5555, 7778],
         ..FullLiveFlightQuery::default()
     };
 

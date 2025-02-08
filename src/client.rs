@@ -105,22 +105,33 @@ impl FlightRadarClient {
         bounds: &Bounds,
         other_queries: Option<&FullLiveFlightQuery>, //TODO: Should this be an option?
     ) -> Result<FullLiveFlightResponse, FlightRadarError> {
-        // Make URL and GET
+        // Make Required URL
         let bounds_str = format!(
             "?bounds={},{},{},{}",
             bounds.north, bounds.south, bounds.west, bounds.east
         );
+        let mut url = format!("{}live/flight-positions/full{}", self.base_url, bounds_str);
 
+        // Add optional queries
         //TODO: Figure out how to implement for every member of struct
         let other_query_in = match other_queries {
             Some(data) => data,
             _ => &FullLiveFlightQuery::default(),
         };
         if !other_query_in.squawks.is_empty() {
-            println!("{:?}", other_queries.unwrap().squawks)
+            //TODO: Squawks can only be ([0-7]{4}) {Return as error or just skip it?}
+            url.push_str("&squawks=");
+            for squawk in &other_query_in.squawks {
+                // Wow this is probably not the abstraction it should be...
+                if squawk < &7777 {
+                    url.push_str(&squawk.to_string());
+                    url.push(',');
+                }
+            }
+            url.pop();
         }
 
-        let url = format!("{}live/flight-positions/full{}", self.base_url, bounds_str);
+        // GET
         let response = self
             .client
             .get(&url)
@@ -131,6 +142,7 @@ impl FlightRadarClient {
 
         // Parse
         let text = response.text().await?;
+        //println!("{:?}", text);
         let live_data: FullLiveFlightResponse =
             serde_json::from_str(&text).map_err(|e| FlightRadarError::Parsing(e.to_string()))?;
 
