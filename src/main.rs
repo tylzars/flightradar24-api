@@ -16,14 +16,14 @@ async fn main() {
     };
 
     let input = FullLiveFlightQuery {
-        squawks: vec![2222, 3333, 5555, 7778],
+        squawks: vec![2222, 3333, 5555, 7777],
         ..FullLiveFlightQuery::default()
     };
 
     let live_flight_full = match client.get_live_flight(&bounds, Some(&input)).await {
         Ok(live_data) => live_data,
         Err(e) => {
-            eprintln!("Error fetching flight data: {}", e);
+            eprintln!("{}", e);
             FullLiveFlightResponse::default()
         }
     };

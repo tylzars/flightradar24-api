@@ -8,6 +8,8 @@ pub enum FlightRadarError {
     Parsing(String),
     /// A general error with a message.
     General(String),
+    /// Invalid Parameter Passed to API.
+    Parameter(String),
 }
 
 impl fmt::Display for FlightRadarError {
@@ -16,6 +18,7 @@ impl fmt::Display for FlightRadarError {
             FlightRadarError::Http(err) => write!(f, "HTTP error: {}", err),
             FlightRadarError::Parsing(msg) => write!(f, "Parsing error: {}", msg),
             FlightRadarError::General(msg) => write!(f, "Error: {}", msg),
+            FlightRadarError::Parameter(msg) => write!(f, "Invalid Parameter: {}", msg),
         }
     }
 }

@@ -119,13 +119,13 @@ impl FlightRadarClient {
             _ => &FullLiveFlightQuery::default(),
         };
         if !other_query_in.squawks.is_empty() {
-            //TODO: Squawks can only be ([0-7]{4}) {Return as error or just skip it?}
             url.push_str("&squawks=");
             for squawk in &other_query_in.squawks {
-                // Wow this is probably not the abstraction it should be...
-                if squawk < &7777 {
+                if squawk <= &7777 {
                     url.push_str(&squawk.to_string());
                     url.push(',');
+                } else {
+                    return Err(FlightRadarError::Parameter(format!("Squawk: {}", squawk)));
                 }
             }
             url.pop();
@@ -160,9 +160,10 @@ impl FlightRadarClient {
     ) -> Result<Vec<Flight>, FlightRadarError> {
         // If value isn't valid hexadecimal, exit function and raise error
         if u64::from_str_radix(flight_id, 16).is_err() {
-            return Err(FlightRadarError::General(
-                "period: Invalid Argument".to_string(),
-            ));
+            return Err(FlightRadarError::Parameter(format!(
+                "Flight ID Not Hexadecimal: {}",
+                flight_id
+            )));
         }
 
         // Make URL and GET
@@ -192,9 +193,10 @@ impl FlightRadarClient {
         // If value isn't valid, exit function and raise error
         (match period {
             "24h" | "7d" | "30d" | "1y" => Ok(()),
-            _ => Err(FlightRadarError::General(
-                "period: Invalid Arguement".to_string(),
-            )),
+            _ => Err(FlightRadarError::Parameter(format!(
+                "Period: {}. Should be: 24h|7d|30d|1y",
+                period
+            ))),
         })?;
 
         // Make URL and GET
@@ -303,7 +305,7 @@ pub struct FullLiveFlightQuery {
     pub routes: Vec<String>,
     pub aircraft: Vec<String>,
     pub altitude_ranges: Vec<ApiRange>,
-    pub squawks: Vec<u32>,
+    pub squawks: Vec<u16>,
     pub categories: Vec<String>,
     pub data_sources: Vec<String>,
     pub airspaces: Vec<String>,
