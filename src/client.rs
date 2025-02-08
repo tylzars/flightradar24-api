@@ -130,6 +130,89 @@ impl FlightRadarClient {
             }
             url.pop();
         }
+        if !other_query_in.flights.is_empty() {
+            url.push_str("&flights=");
+            for flight in &other_query_in.flights {
+                // The documentation doesn't really give use bounds for what this can be...
+                if flight.chars().all(char::is_alphanumeric) && flight.len() > 2 {
+                    url.push_str(&flight.to_string());
+                    url.push(',');
+                } else {
+                    return Err(FlightRadarError::Parameter(format!("Flight #: {}", flight)));
+                }
+            }
+            url.pop();
+        }
+        if !other_query_in.callsigns.is_empty() {
+            url.push_str("&callsigns=");
+            for callsign in &other_query_in.callsigns {
+                if callsign.chars().all(char::is_alphanumeric)
+                    && callsign.len() > 2
+                    && callsign.len() <= 8
+                {
+                    url.push_str(&callsign.to_string());
+                    url.push(',');
+                } else {
+                    return Err(FlightRadarError::Parameter(format!(
+                        "Callsign: {}",
+                        callsign
+                    )));
+                }
+            }
+            url.pop();
+        }
+        if !other_query_in.registrations.is_empty() {
+            url.push_str("&registrations=");
+            for registration in &other_query_in.registrations {
+                if registration
+                    .chars()
+                    .all(|c| c.is_alphanumeric() || c == '-')
+                    && registration.len() > 1
+                    && registration.len() <= 12
+                {
+                    url.push_str(&registration.to_string());
+                    url.push(',');
+                } else {
+                    return Err(FlightRadarError::Parameter(format!(
+                        "Registration #: {}",
+                        registration
+                    )));
+                }
+            }
+            url.pop();
+        }
+        if !other_query_in.painted_as.is_empty() {
+            url.push_str("&painted_as=");
+            for painted in &other_query_in.painted_as {
+                if painted.chars().all(char::is_alphabetic) && painted.len() == 3 {
+                    url.push_str(&painted.to_string());
+                    url.push(',');
+                } else {
+                    return Err(FlightRadarError::Parameter(format!(
+                        "Painted As: {}",
+                        painted
+                    )));
+                }
+            }
+            url.pop();
+        }
+        if !other_query_in.operating_as.is_empty() {
+            url.push_str("&operating_as=");
+            for operating in &other_query_in.operating_as {
+                if operating.chars().all(char::is_alphabetic) && operating.len() == 3 {
+                    url.push_str(&operating.to_string());
+                    url.push(',');
+                } else {
+                    return Err(FlightRadarError::Parameter(format!(
+                        "Operating As: {}",
+                        operating
+                    )));
+                }
+            }
+            url.pop();
+        }
+
+        println!("{}", url);
 
         // GET
         let response = self
@@ -142,7 +225,7 @@ impl FlightRadarClient {
 
         // Parse
         let text = response.text().await?;
-        //println!("{:?}", text);
+        println!("{:?}", text);
         let live_data: FullLiveFlightResponse =
             serde_json::from_str(&text).map_err(|e| FlightRadarError::Parsing(e.to_string()))?;
 

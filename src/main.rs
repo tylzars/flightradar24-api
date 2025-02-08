@@ -17,6 +17,11 @@ async fn main() {
 
     let input = FullLiveFlightQuery {
         squawks: vec![2222, 3333, 5555, 7777],
+        flights: vec!["DL4204".to_string(), "aa1".to_string()],
+        callsigns: vec!["WJA329".to_string(), "w1ssstt".to_string()],
+        registrations: vec!["D-AFAM".to_string(), "E1".to_string()],
+        painted_as: vec!["SAS".to_string(), "ART".to_string(), "aaa".to_string()],
+        operating_as: vec!["SAS".to_string(), "ART".to_string(), "aaa".to_string()],
         ..FullLiveFlightQuery::default()
     };
 
