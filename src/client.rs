@@ -333,9 +333,10 @@ impl FlightRadarClient {
         );
 
         // Add optional queries
+        let defualt_query_in = &FullLiveFlightQuery::default();
         let other_query_in = match other_queries {
             Some(data) => data,
-            _ => &FullLiveFlightQuery::default(),
+            _ => &defualt_query_in,
         };
 
         let params_back = Self::build_query_params(other_query_in)?;
