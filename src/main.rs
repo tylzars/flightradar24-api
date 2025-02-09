@@ -1,3 +1,5 @@
+use std::vec;
+
 use dotenv::dotenv;
 use flightradar24_api::client::*;
 
@@ -22,7 +24,22 @@ async fn main() {
         registrations: vec!["D-AFAM".to_string(), "E1".to_string()],
         painted_as: vec!["SAS".to_string(), "ART".to_string(), "aaa".to_string()],
         operating_as: vec!["SAS".to_string(), "ART".to_string(), "aaa".to_string()],
-        ..FullLiveFlightQuery::default()
+        airports: vec!["LHR".to_string(), "both:ESSA".to_string()],
+        routes: vec!["SE-US".to_string(), "ESSA-JFK".to_string()],
+        aircraft: vec!["B38M".to_string(), "A32*".to_string(), "*33".to_string()],
+        altitude_ranges: vec![ApiRange {
+            max: 3333,
+            min: 2222,
+        }],
+        categories: vec!['B', 'P'],
+        data_sources: vec!["MLAT".to_string()],
+        airspaces: vec!["ESAA".to_string(), "DFZZ".to_string()],
+        gspeed: ApiRange {
+            max: 3333,
+            min: 2222,
+        },
+        limit: 4444,
+        //..FullLiveFlightQuery::default()
     };
 
     let live_flight_full = match client.get_live_flight(&bounds, Some(&input)).await {

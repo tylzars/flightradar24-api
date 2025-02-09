@@ -118,18 +118,6 @@ impl FlightRadarClient {
             Some(data) => data,
             _ => &FullLiveFlightQuery::default(),
         };
-        if !other_query_in.squawks.is_empty() {
-            url.push_str("&squawks=");
-            for squawk in &other_query_in.squawks {
-                if squawk <= &7777 {
-                    url.push_str(&squawk.to_string());
-                    url.push(',');
-                } else {
-                    return Err(FlightRadarError::Parameter(format!("Squawk: {}", squawk)));
-                }
-            }
-            url.pop();
-        }
         if !other_query_in.flights.is_empty() {
             url.push_str("&flights=");
             for flight in &other_query_in.flights {
@@ -211,8 +199,138 @@ impl FlightRadarClient {
             }
             url.pop();
         }
+        if !other_query_in.airports.is_empty() {
+            url.push_str("&airports=");
+            for airport in &other_query_in.airports {
+                //TODO: Accurate check ICAO codes
+                if airport.chars().all(|c| c.is_alphabetic() || c == ':') {
+                    url.push_str(&airport.to_string());
+                    url.push(',');
+                } else {
+                    return Err(FlightRadarError::Parameter(format!("Airport: {}", airport)));
+                }
+            }
+            url.pop();
+        }
+        if !other_query_in.routes.is_empty() {
+            url.push_str("&routes=");
+            for route in &other_query_in.routes {
+                //TODO: Accurate check ICAO codes
+                if route.chars().all(|c| c.is_alphabetic() || c == '-') {
+                    url.push_str(&route.to_string());
+                    url.push(',');
+                } else {
+                    return Err(FlightRadarError::Parameter(format!("Route: {}", route)));
+                }
+            }
+            url.pop();
+        }
+        if !other_query_in.aircraft.is_empty() {
+            url.push_str("&aircraft=");
+            for aircraft_iter in &other_query_in.aircraft {
+                //TODO: Check to ensure each doesn't start with * and end with *
+                if aircraft_iter
+                    .chars()
+                    .all(|c| c.is_alphanumeric() || c == '*')
+                {
+                    url.push_str(&aircraft_iter.to_string());
+                    url.push(',');
+                } else {
+                    return Err(FlightRadarError::Parameter(format!(
+                        "Aircraft: {}",
+                        aircraft_iter
+                    )));
+                }
+            }
+            url.pop();
+        }
+        if !other_query_in.altitude_ranges.is_empty() {
+            url.push_str("&altitude_ranges=");
+            for altitude_range in &other_query_in.altitude_ranges {
+                url.push_str(&altitude_range.min.to_string());
+                url.push('-');
+                url.push_str(&altitude_range.max.to_string());
+                url.push(',');
+            }
+            url.pop();
+        }
+        if !other_query_in.squawks.is_empty() {
+            url.push_str("&squawks=");
+            for squawk in &other_query_in.squawks {
+                if squawk <= &7777 {
+                    url.push_str(&squawk.to_string());
+                    url.push(',');
+                } else {
+                    return Err(FlightRadarError::Parameter(format!("Squawk: {}", squawk)));
+                }
+            }
+            url.pop();
+        }
+        if !other_query_in.categories.is_empty() {
+            url.push_str("&categories=");
+            for category in &other_query_in.categories {
+                //TODO: Fix the ownership issues here??
+                if "PCMJTHBGDVON".contains(*category) {
+                    url.push(*category);
+                    url.push(',');
+                } else {
+                    return Err(FlightRadarError::Parameter(format!(
+                        "Category: {}",
+                        category
+                    )));
+                }
+            }
+            url.pop();
+        }
+        if !other_query_in.data_sources.is_empty() {
+            //TODO: Don't do it this way
+            let valid_data_sources = [
+                "ADSB".to_string(),
+                "MLAT".to_string(),
+                "ESTIMATED".to_string(),
+            ];
+            url.push_str("&data_sources=");
+            for data_source in &other_query_in.data_sources {
+                if valid_data_sources.contains(data_source) {
+                    url.push_str(data_source);
+                    url.push(',');
+                } else {
+                    return Err(FlightRadarError::Parameter(format!(
+                        "Data Source: {}",
+                        data_source
+                    )));
+                }
+            }
+            url.pop();
+        }
+        if !other_query_in.airspaces.is_empty() {
+            url.push_str("&airspaces=");
+            for airspace in &other_query_in.airspaces {
+                if airspace.chars().all(char::is_alphabetic) {
+                    url.push_str(&airspace.to_string());
+                    url.push(',');
+                } else {
+                    return Err(FlightRadarError::Parameter(format!(
+                        "Airspace: {}",
+                        airspace
+                    )));
+                }
+            }
+            url.pop();
+        }
+        if other_query_in.gspeed.max != 0 && !other_query_in.gspeed.min != 0 {
+            //TODO: switch this to be an option to take in a single number instead of range
+            url.push_str("&gspeed=");
+            url.push_str(&other_query_in.gspeed.min.to_string());
+            url.push('-');
+            url.push_str(&other_query_in.gspeed.max.to_string());
+        }
+        if other_query_in.limit != 0 && other_query_in.limit <= 30000 {
+            url.push_str("&limit=");
+            url.push_str(&other_query_in.limit.to_string());
+        }
 
-        println!("{}", url);
+        //println!("{}", url);
 
         // GET
         let response = self
@@ -225,7 +343,7 @@ impl FlightRadarClient {
 
         // Parse
         let text = response.text().await?;
-        println!("{:?}", text);
+        //println!("{:?}", text);
         let live_data: FullLiveFlightResponse =
             serde_json::from_str(&text).map_err(|e| FlightRadarError::Parsing(e.to_string()))?;
 
@@ -377,6 +495,7 @@ pub struct AirportLite {
 }
 
 /// Represents a query for flight positions.
+//TODO: Make the Vec<> optional??
 #[derive(Debug, Deserialize, Default)]
 pub struct FullLiveFlightQuery {
     pub flights: Vec<String>,
@@ -389,7 +508,7 @@ pub struct FullLiveFlightQuery {
     pub aircraft: Vec<String>,
     pub altitude_ranges: Vec<ApiRange>,
     pub squawks: Vec<u16>,
-    pub categories: Vec<String>,
+    pub categories: Vec<char>,
     pub data_sources: Vec<String>,
     pub airspaces: Vec<String>,
     pub gspeed: ApiRange,
