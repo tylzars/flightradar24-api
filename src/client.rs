@@ -20,104 +20,11 @@ impl FlightRadarClient {
         }
     }
 
-    /// Fetches airline information by ICAO.
-    /// # Arguments
-    ///   * `icao` - The identifier for the airline.
-    /// # Returns
-    ///   A `Airline` struct on success or a `FlightRadarError` on failure.
-    pub async fn get_airline_by_icao(&self, icao: &str) -> Result<Airline, FlightRadarError> {
-        // Make URL and GET
-        let url = format!("{}static/airlines/{}/light", self.base_url, icao);
-        let response = self
-            .client
-            .get(&url)
-            .header("Accept-Version", "v1") // Add "Accept-Version: v1"
-            .bearer_auth(&self.api_key) // Add "Authorization: Bearer <API_KEY>"
-            .send()
-            .await?;
+    fn build_query_params(
+        other_query_in: &FullLiveFlightQuery,
+    ) -> Result<String, FlightRadarError> {
+        let mut url: String = String::new();
 
-        // Parse
-        let text = response.text().await?;
-        let airline: Airline =
-            serde_json::from_str(&text).map_err(|e| FlightRadarError::Parsing(e.to_string()))?;
-
-        Ok(airline)
-    }
-
-    /// Fetches airport information by code.
-    /// # Arguments
-    ///   * `code` - The identifier for the airport.
-    /// # Returns
-    ///   A `Airport` struct on success or a `FlightRadarError` on failure.
-    pub async fn get_airport_by_code(&self, code: &str) -> Result<Airport, FlightRadarError> {
-        // Make URL and GET
-        let url = format!("{}static/airports/{}/full", self.base_url, code);
-        let response = self
-            .client
-            .get(&url)
-            .header("Accept-Version", "v1") // Add "Accept-Version: v1"
-            .bearer_auth(&self.api_key) // Add "Authorization: Bearer <API_KEY>"
-            .send()
-            .await?;
-
-        // Parse
-        let text = response.text().await?;
-        let airport: Airport =
-            serde_json::from_str(&text).map_err(|e| FlightRadarError::Parsing(e.to_string()))?;
-
-        Ok(airport)
-    }
-
-    /// Fetches airport information by code.
-    /// # Arguments
-    ///   * `code` - The identifier for the airport.
-    /// # Returns
-    ///   A `Airport` struct on success or a `FlightRadarError` on failure.
-    pub async fn get_airport_lite_by_code(
-        &self,
-        code: &str,
-    ) -> Result<AirportLite, FlightRadarError> {
-        // Make URL and GET
-        let url = format!("{}static/airports/{}/light", self.base_url, code);
-        let response = self
-            .client
-            .get(&url)
-            .header("Accept-Version", "v1") // Add "Accept-Version: v1"
-            .bearer_auth(&self.api_key) // Add "Authorization: Bearer <API_KEY>"
-            .send()
-            .await?;
-
-        // Parse
-        let text = response.text().await?;
-        let airport: AirportLite =
-            serde_json::from_str(&text).map_err(|e| FlightRadarError::Parsing(e.to_string()))?;
-
-        Ok(airport)
-    }
-
-    /// Fetches live flight information by location (or other parameters).
-    /// # Arguments
-    ///   * `bounds` - The bounds of an area to get live information
-    /// # Returns
-    ///   A `FullLiveFlightResponse` struct on success or a `FlightRadarError` on failure.
-    pub async fn get_live_flight(
-        &self,
-        bounds: &Bounds,
-        other_queries: Option<&FullLiveFlightQuery>, //TODO: Should this be an option?
-    ) -> Result<FullLiveFlightResponse, FlightRadarError> {
-        // Make Required URL
-        let bounds_str = format!(
-            "?bounds={},{},{},{}",
-            bounds.north, bounds.south, bounds.west, bounds.east
-        );
-        let mut url = format!("{}live/flight-positions/full{}", self.base_url, bounds_str);
-
-        // Add optional queries
-        //TODO: Figure out how to implement for every member of struct
-        let other_query_in = match other_queries {
-            Some(data) => data,
-            _ => &FullLiveFlightQuery::default(),
-        };
         if !other_query_in.flights.is_empty() {
             url.push_str("&flights=");
             for flight in &other_query_in.flights {
@@ -228,13 +135,14 @@ impl FlightRadarClient {
         if !other_query_in.aircraft.is_empty() {
             url.push_str("&aircraft=");
             for aircraft_iter in &other_query_in.aircraft {
-                //TODO: Check to ensure each doesn't start with * and end with *
                 if aircraft_iter
                     .chars()
                     .all(|c| c.is_alphanumeric() || c == '*')
                 {
-                    url.push_str(&aircraft_iter.to_string());
-                    url.push(',');
+                    if aircraft_iter.chars().filter(|c| c == &'*').count() == 1 {
+                        url.push_str(&aircraft_iter.to_string());
+                        url.push(',');
+                    }
                 } else {
                     return Err(FlightRadarError::Parameter(format!(
                         "Aircraft: {}",
@@ -269,7 +177,6 @@ impl FlightRadarClient {
         if !other_query_in.categories.is_empty() {
             url.push_str("&categories=");
             for category in &other_query_in.categories {
-                //TODO: Fix the ownership issues here??
                 if "PCMJTHBGDVON".contains(*category) {
                     url.push(*category);
                     url.push(',');
@@ -283,7 +190,6 @@ impl FlightRadarClient {
             url.pop();
         }
         if !other_query_in.data_sources.is_empty() {
-            //TODO: Don't do it this way
             let valid_data_sources = [
                 "ADSB".to_string(),
                 "MLAT".to_string(),
@@ -319,7 +225,7 @@ impl FlightRadarClient {
             url.pop();
         }
         if other_query_in.gspeed.max != 0 && !other_query_in.gspeed.min != 0 {
-            //TODO: switch this to be an option to take in a single number instead of range
+            //TODO: switch this to be an option to take in a single number instead of range (Accomplish with an enum?)
             url.push_str("&gspeed=");
             url.push_str(&other_query_in.gspeed.min.to_string());
             url.push('-');
@@ -330,12 +236,118 @@ impl FlightRadarClient {
             url.push_str(&other_query_in.limit.to_string());
         }
 
-        //println!("{}", url);
+        Ok(url)
+    }
+
+    /// Fetches airline information by ICAO.
+    /// # Arguments
+    ///   * `icao` - The identifier for the airline.
+    /// # Returns
+    ///   A `Airline` struct on success or a `FlightRadarError` on failure.
+    pub async fn get_airline_by_icao(&self, icao: &str) -> Result<Airline, FlightRadarError> {
+        // Make URL and GET
+        let url = format!("{}static/airlines/{}/light", self.base_url, icao);
+        let response = self
+            .client
+            .get(&url)
+            .header("Accept-Version", "v1") // Add "Accept-Version: v1"
+            .bearer_auth(&self.api_key) // Add "Authorization: Bearer <API_KEY>"
+            .send()
+            .await?;
+
+        // Parse
+        let text = response.text().await?;
+        let airline: Airline =
+            serde_json::from_str(&text).map_err(|e| FlightRadarError::Parsing(e.to_string()))?;
+
+        Ok(airline)
+    }
+
+    /// Fetches airport information by code.
+    /// # Arguments
+    ///   * `code` - The identifier for the airport.
+    /// # Returns
+    ///   A `Airport` struct on success or a `FlightRadarError` on failure.
+    pub async fn get_airport_by_code(&self, code: &str) -> Result<Airport, FlightRadarError> {
+        // Make URL and GET
+        let url = format!("{}static/airports/{}/full", self.base_url, code);
+        let response = self
+            .client
+            .get(&url)
+            .header("Accept-Version", "v1") // Add "Accept-Version: v1"
+            .bearer_auth(&self.api_key) // Add "Authorization: Bearer <API_KEY>"
+            .send()
+            .await?;
+
+        // Parse
+        let text = response.text().await?;
+        let airport: Airport =
+            serde_json::from_str(&text).map_err(|e| FlightRadarError::Parsing(e.to_string()))?;
+
+        Ok(airport)
+    }
+
+    /// Fetches airport information by code.
+    /// # Arguments
+    ///   * `code` - The identifier for the airport.
+    /// # Returns
+    ///   A `Airport` struct on success or a `FlightRadarError` on failure.
+    pub async fn get_airport_lite_by_code(
+        &self,
+        code: &str,
+    ) -> Result<AirportLite, FlightRadarError> {
+        // Make URL and GET
+        let url = format!("{}static/airports/{}/light", self.base_url, code);
+        let response = self
+            .client
+            .get(&url)
+            .header("Accept-Version", "v1") // Add "Accept-Version: v1"
+            .bearer_auth(&self.api_key) // Add "Authorization: Bearer <API_KEY>"
+            .send()
+            .await?;
+
+        // Parse
+        let text = response.text().await?;
+        let airport: AirportLite =
+            serde_json::from_str(&text).map_err(|e| FlightRadarError::Parsing(e.to_string()))?;
+
+        Ok(airport)
+    }
+
+    /// Fetches live flight information by location (or other parameters).
+    /// # Arguments
+    ///   * `bounds` - The bounds of an area to get live information
+    /// # Returns
+    ///   A `FullLiveFlightResponse` struct on success or a `FlightRadarError` on failure.
+    pub async fn get_live_flight(
+        &self,
+        bounds: &Bounds,
+        other_queries: Option<&FullLiveFlightQuery>,
+    ) -> Result<FullLiveFlightResponse, FlightRadarError> {
+        // Make Required URL
+        let bounds_str = format!(
+            "?bounds={},{},{},{}",
+            bounds.north, bounds.south, bounds.west, bounds.east
+        );
+
+        // Add optional queries
+        let other_query_in = match other_queries {
+            Some(data) => data,
+            _ => &FullLiveFlightQuery::default(),
+        };
+
+        let params_back = Self::build_query_params(other_query_in)?;
+        let endpoint = format!(
+            "{}live/flight-positions/full{}{}",
+            self.base_url, bounds_str, params_back
+        );
+
+        //println!("{}", endpoint);
 
         // GET
         let response = self
             .client
-            .get(&url)
+            .get(&endpoint)
             .header("Accept-Version", "v1") // Add "Accept-Version: v1"
             .bearer_auth(&self.api_key) // Add "Authorization: Bearer <API_KEY>"
             .send()
@@ -495,7 +507,6 @@ pub struct AirportLite {
 }
 
 /// Represents a query for flight positions.
-//TODO: Make the Vec<> optional??
 #[derive(Debug, Deserialize, Default)]
 pub struct FullLiveFlightQuery {
     pub flights: Vec<String>,
