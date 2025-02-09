@@ -1,5 +1,6 @@
 use std::fmt;
 
+/// Crate Error Types that may arise.
 #[derive(Debug)]
 pub enum FlightRadarError {
     /// Errors returned by the HTTP client.

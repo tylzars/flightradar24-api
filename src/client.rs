@@ -1,6 +1,8 @@
 use crate::error::FlightRadarError;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
+
+/// Main structure for storing API internal data
 pub struct FlightRadarClient {
     client: Client,
     base_url: String,
@@ -431,6 +433,7 @@ impl FlightRadarClient {
     }
 }
 
+/// Individual Tracks for flight-tracks endpoint
 #[derive(Debug, Deserialize, Default)]
 pub struct Track {
     pub timestamp: String,
@@ -445,6 +448,7 @@ pub struct Track {
     pub source: String,
 }
 
+/// Wrapper struct for flight-tracks endpoint
 #[derive(Debug, Deserialize, Default)]
 pub struct Flight {
     #[serde(rename = "fr24_id")]
@@ -452,11 +456,13 @@ pub struct Flight {
     pub tracks: Vec<Track>,
 }
 
+/// Wrapper struct of usage endpoint
 #[derive(Debug, Deserialize, Default)]
 pub struct ApiUsageResponse {
     pub data: Vec<ApiEndpointUsage>,
 }
 
+/// Individual endpoint usage data
 #[derive(Debug, Deserialize, Default)]
 pub struct ApiEndpointUsage {
     pub endpoint: String,
@@ -466,6 +472,7 @@ pub struct ApiEndpointUsage {
     pub credits: u32,
 }
 
+/// Basic Airline stucture
 #[derive(Debug, Deserialize, Default)]
 pub struct Airline {
     pub name: String,
@@ -473,6 +480,7 @@ pub struct Airline {
     pub icao: String,
 }
 
+/// Result airport data from airport/full endpoint
 #[derive(Debug, Deserialize, Default)]
 pub struct Airport {
     pub name: String,
@@ -487,18 +495,21 @@ pub struct Airport {
     pub timezone: Timezone,
 }
 
+/// Nested Struct for Country Data
 #[derive(Debug, Deserialize, Default)]
 pub struct Country {
     pub code: String,
     pub name: String,
 }
 
+/// Nested Struct for Timezone Data
 #[derive(Debug, Deserialize, Default)]
 pub struct Timezone {
     pub name: String,
     pub offset: i32,
 }
 
+/// Result airport data from airport/light endpoint
 #[derive(Debug, Deserialize, Default)]
 pub struct AirportLite {
     pub name: String,
@@ -542,11 +553,13 @@ pub struct ApiRange {
     pub max: u32,
 }
 
+/// Wrapper struct for flight-positions endpoint
 #[derive(Deserialize, Debug, Default)]
 pub struct FullLiveFlightResponse {
     pub data: Vec<FullLiveFlightData>,
 }
 
+/// Data for each flight returned from flight-positions endpoint
 #[derive(Deserialize, Debug, Default)]
 pub struct FullLiveFlightData {
     pub fr24_id: String,
