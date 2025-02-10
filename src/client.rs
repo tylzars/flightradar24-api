@@ -319,6 +319,7 @@ impl FlightRadarClient {
     /// Fetches live flight information by location (or other parameters).
     /// # Arguments
     ///   * `bounds` - The bounds of an area to get live information
+    ///   * `other_queries` - Optional parameters to narrow down data
     /// # Returns
     ///   A `FullLiveFlightResponse` struct on success or a `FlightRadarError` on failure.
     pub async fn get_live_flight(
@@ -336,7 +337,7 @@ impl FlightRadarClient {
         let defualt_query_in = &FullLiveFlightQuery::default();
         let other_query_in = match other_queries {
             Some(data) => data,
-            _ => &defualt_query_in,
+            _ => defualt_query_in,
         };
 
         let params_back = Self::build_query_params(other_query_in)?;
@@ -360,6 +361,56 @@ impl FlightRadarClient {
         let text = response.text().await?;
         //println!("{:?}", text);
         let live_data: FullLiveFlightResponse =
+            serde_json::from_str(&text).map_err(|e| FlightRadarError::Parsing(e.to_string()))?;
+
+        Ok(live_data)
+    }
+
+    /// Fetches light live flight information by location (or other parameters).
+    /// # Arguments
+    ///   * `bounds` - The bounds of an area to get live information
+    ///   * `other_queries` - Optional parameters to narrow down data
+    /// # Returns
+    ///   A `LightLiveFlightResponse` struct on success or a `FlightRadarError` on failure.
+    pub async fn get_live_flight_light(
+        &self,
+        bounds: &Bounds,
+        other_queries: Option<&FullLiveFlightQuery>,
+    ) -> Result<LightLiveFlightResponse, FlightRadarError> {
+        // Make Required URL
+        let bounds_str = format!(
+            "?bounds={},{},{},{}",
+            bounds.north, bounds.south, bounds.west, bounds.east
+        );
+
+        // Add optional queries
+        let defualt_query_in = &FullLiveFlightQuery::default();
+        let other_query_in = match other_queries {
+            Some(data) => data,
+            _ => defualt_query_in,
+        };
+
+        let params_back = Self::build_query_params(other_query_in)?;
+        let endpoint = format!(
+            "{}live/flight-positions/light{}{}",
+            self.base_url, bounds_str, params_back
+        );
+
+        //println!("{}", endpoint);
+
+        // GET
+        let response = self
+            .client
+            .get(&endpoint)
+            .header("Accept-Version", "v1") // Add "Accept-Version: v1"
+            .bearer_auth(&self.api_key) // Add "Authorization: Bearer <API_KEY>"
+            .send()
+            .await?;
+
+        // Parse
+        let text = response.text().await?;
+        //println!("{:?}", text);
+        let live_data: LightLiveFlightResponse =
             serde_json::from_str(&text).map_err(|e| FlightRadarError::Parsing(e.to_string()))?;
 
         Ok(live_data)
@@ -571,7 +622,7 @@ pub struct FullLiveFlightData {
     pub track: u32,
     pub alt: u32,
     pub gspeed: u32,
-    pub vspeed: u32,
+    pub vspeed: i32, // Plane can be descending
     pub squawk: String,
     pub timestamp: String,
     pub source: String,
@@ -587,4 +638,26 @@ pub struct FullLiveFlightData {
     pub dest_iata: String,
     pub dest_icao: String,
     pub eta: String,
+}
+
+#[derive(Deserialize, Debug, Default)]
+pub struct LightLiveFlightResponse {
+    pub data: Vec<LightLiveFlightData>,
+}
+
+/// Data for each flight returned from flight-positions endpoint
+#[derive(Deserialize, Debug, Default)]
+pub struct LightLiveFlightData {
+    pub fr24_id: String,
+    pub hex: String,
+    pub callsign: String,
+    pub lat: f64,
+    pub lon: f64,
+    pub track: u32,
+    pub alt: u32,
+    pub gspeed: u32,
+    pub vspeed: i32, // Plane can be descending
+    pub squawk: String,
+    pub timestamp: String,
+    pub source: String,
 }
