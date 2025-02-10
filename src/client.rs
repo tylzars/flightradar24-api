@@ -226,13 +226,30 @@ impl FlightRadarClient {
             }
             url.pop();
         }
-        if other_query_in.gspeed.max != 0 && !other_query_in.gspeed.min != 0 {
-            //TODO: switch this to be an option to take in a single number instead of range (Accomplish with an enum?)
-            url.push_str("&gspeed=");
-            url.push_str(&other_query_in.gspeed.min.to_string());
-            url.push('-');
-            url.push_str(&other_query_in.gspeed.max.to_string());
-        }
+        match &other_query_in.gspeed {
+            ApiRangeEnum::None => url.push_str(""),
+            ApiRangeEnum::U32(val) => {
+                // Can't be greater than 5000
+                if val > &5000 {
+                    return Err(FlightRadarError::Parameter(format!("GSpeed: {}", val)));
+                }
+                url.push_str("&gspeed=");
+                url.push_str(&val.to_string());
+            }
+            ApiRangeEnum::ApiRange(gspeed) => {
+                // Can't be greater than 5000
+                if gspeed.max > 5000 {
+                    return Err(FlightRadarError::Parameter(format!(
+                        "GSpeed: {}",
+                        gspeed.max
+                    )));
+                }
+                url.push_str("&gspeed=");
+                url.push_str(&gspeed.min.to_string());
+                url.push('-');
+                url.push_str(&gspeed.max.to_string());
+            }
+        };
         if other_query_in.limit != 0 && other_query_in.limit <= 30000 {
             url.push_str("&limit=");
             url.push_str(&other_query_in.limit.to_string());
@@ -346,7 +363,7 @@ impl FlightRadarClient {
             self.base_url, bounds_str, params_back
         );
 
-        //println!("{}", endpoint);
+        println!("{}", endpoint);
 
         // GET
         let response = self
@@ -585,7 +602,7 @@ pub struct FullLiveFlightQuery {
     pub categories: Vec<char>,
     pub data_sources: Vec<String>,
     pub airspaces: Vec<String>,
-    pub gspeed: ApiRange,
+    pub gspeed: ApiRangeEnum,
     pub limit: u32,
 }
 
@@ -603,6 +620,14 @@ pub struct Bounds {
 pub struct ApiRange {
     pub min: u32,
     pub max: u32,
+}
+
+#[derive(Debug, Deserialize, Default)]
+pub enum ApiRangeEnum {
+    U32(u32),
+    ApiRange(ApiRange),
+    #[default]
+    None,
 }
 
 /// Wrapper struct for flight-positions endpoint

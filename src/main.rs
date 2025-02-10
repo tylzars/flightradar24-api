@@ -34,10 +34,11 @@ async fn main() {
         categories: vec!['B', 'P'],
         data_sources: vec!["MLAT".to_string()],
         airspaces: vec!["ESAA".to_string(), "DFZZ".to_string()],
-        gspeed: ApiRange {
-            max: 3333,
+        gspeed: ApiRangeEnum::ApiRange(ApiRange {
+            max: 5000,
             min: 2222,
-        },
+        }),
+        //gspeed: ApiRangeEnum::U32(2332),
         limit: 4444,
         //..FullLiveFlightQuery::default()
     };
