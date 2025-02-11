@@ -10,7 +10,7 @@ async fn main() {
 
     let client = FlightRadarClient::new(api_key);
 
-    let bounds = Bounds {
+    let bounds_in = Bounds {
         north: 42.473,
         south: 37.331,
         west: -10.014,
@@ -18,6 +18,7 @@ async fn main() {
     };
 
     let input = FullLiveFlightQuery {
+        bounds: bounds_in,
         squawks: vec![2222, 3333, 5555, 7777],
         flights: vec!["DL4204".to_string(), "aa1".to_string()],
         callsigns: vec!["WJA329".to_string(), "w1ssstt".to_string()],
@@ -43,7 +44,7 @@ async fn main() {
         //..FullLiveFlightQuery::default()
     };
 
-    let live_flight_full = match client.get_live_flight(&bounds, Some(&input)).await {
+    let live_flight_full = match client.get_live_flight(Some(&input)).await {
         Ok(live_data) => live_data,
         Err(e) => {
             eprintln!("{}", e);
@@ -53,7 +54,7 @@ async fn main() {
 
     println!("Flight Live Info: {:?}", live_flight_full);
 
-    let live_flight_light = match client.get_live_flight_light(&bounds, Some(&input)).await {
+    let live_flight_light = match client.get_live_flight_light(Some(&input)).await {
         Ok(live_data) => live_data,
         Err(e) => {
             eprintln!("{}", e);

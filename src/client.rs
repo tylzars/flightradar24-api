@@ -27,6 +27,21 @@ impl FlightRadarClient {
     ) -> Result<String, FlightRadarError> {
         let mut url: String = String::new();
 
+        if other_query_in.bounds.north != 0.0
+            && other_query_in.bounds.south != 0.0
+            && other_query_in.bounds.east != 0.0
+            && other_query_in.bounds.west != 0.0
+        {
+            //TODO: Check if valid bounds for lat/lon
+            let bounds_str = format!(
+                "?bounds={},{},{},{}",
+                other_query_in.bounds.north,
+                other_query_in.bounds.south,
+                other_query_in.bounds.west,
+                other_query_in.bounds.east
+            );
+            url.push_str(&bounds_str)
+        }
         if !other_query_in.flights.is_empty() {
             url.push_str("&flights=");
             for flight in &other_query_in.flights {
@@ -341,16 +356,9 @@ impl FlightRadarClient {
     ///   A `FullLiveFlightResponse` struct on success or a `FlightRadarError` on failure.
     pub async fn get_live_flight(
         &self,
-        bounds: &Bounds,
         other_queries: Option<&FullLiveFlightQuery>,
     ) -> Result<FullLiveFlightResponse, FlightRadarError> {
         // Make Required URL
-        let bounds_str = format!(
-            "?bounds={},{},{},{}",
-            bounds.north, bounds.south, bounds.west, bounds.east
-        );
-
-        // Add optional queries
         let defualt_query_in = &FullLiveFlightQuery::default();
         let other_query_in = match other_queries {
             Some(data) => data,
@@ -358,12 +366,9 @@ impl FlightRadarClient {
         };
 
         let params_back = Self::build_query_params(other_query_in)?;
-        let endpoint = format!(
-            "{}live/flight-positions/full{}{}",
-            self.base_url, bounds_str, params_back
-        );
+        let endpoint = format!("{}live/flight-positions/full{}", self.base_url, params_back);
 
-        println!("{}", endpoint);
+        //println!("{}", endpoint);
 
         // GET
         let response = self
@@ -391,16 +396,9 @@ impl FlightRadarClient {
     ///   A `LightLiveFlightResponse` struct on success or a `FlightRadarError` on failure.
     pub async fn get_live_flight_light(
         &self,
-        bounds: &Bounds,
         other_queries: Option<&FullLiveFlightQuery>,
     ) -> Result<LightLiveFlightResponse, FlightRadarError> {
         // Make Required URL
-        let bounds_str = format!(
-            "?bounds={},{},{},{}",
-            bounds.north, bounds.south, bounds.west, bounds.east
-        );
-
-        // Add optional queries
         let defualt_query_in = &FullLiveFlightQuery::default();
         let other_query_in = match other_queries {
             Some(data) => data,
@@ -408,10 +406,7 @@ impl FlightRadarClient {
         };
 
         let params_back = Self::build_query_params(other_query_in)?;
-        let endpoint = format!(
-            "{}live/flight-positions/light{}{}",
-            self.base_url, bounds_str, params_back
-        );
+        let endpoint = format!("{}live/flight-positions/full{}", self.base_url, params_back);
 
         //println!("{}", endpoint);
 
@@ -589,6 +584,7 @@ pub struct AirportLite {
 /// Represents a query for flight positions.
 #[derive(Debug, Deserialize, Default)]
 pub struct FullLiveFlightQuery {
+    pub bounds: Bounds,
     pub flights: Vec<String>,
     pub callsigns: Vec<String>,
     pub registrations: Vec<String>,
