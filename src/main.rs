@@ -18,29 +18,40 @@ async fn main() {
     };
 
     let input = FullLiveFlightQuery {
-        bounds: bounds_in,
-        squawks: vec![2222, 3333, 5555, 7777],
-        flights: vec!["DL4204".to_string(), "aa1".to_string()],
-        callsigns: vec!["WJA329".to_string(), "w1ssstt".to_string()],
-        registrations: vec!["D-AFAM".to_string(), "E1".to_string()],
-        painted_as: vec!["SAS".to_string(), "ART".to_string(), "aaa".to_string()],
-        operating_as: vec!["SAS".to_string(), "ART".to_string(), "aaa".to_string()],
-        airports: vec!["LHR".to_string(), "both:ESSA".to_string()],
-        routes: vec!["SE-US".to_string(), "ESSA-JFK".to_string()],
-        aircraft: vec!["B38M".to_string(), "A32*".to_string(), "*33".to_string()],
-        altitude_ranges: vec![ApiRange {
+        bounds: Some(bounds_in),
+        squawks: Some(vec![2222, 3333, 5555, 7777]),
+        flights: Some(vec!["DL4204".to_string(), "aa1".to_string()]),
+        callsigns: Some(vec!["WJA329".to_string(), "w1ssstt".to_string()]),
+        registrations: Some(vec!["D-AFAM".to_string(), "E1".to_string()]),
+        painted_as: Some(vec![
+            "SAS".to_string(),
+            "ART".to_string(),
+            "aaa".to_string(),
+        ]),
+        operating_as: Some(vec![
+            "SAS".to_string(),
+            "ART".to_string(),
+            "aaa".to_string(),
+        ]),
+        airports: Some(vec!["LHR".to_string(), "both:ESSA".to_string()]),
+        routes: Some(vec!["SE-US".to_string(), "ESSA-JFK".to_string()]),
+        aircraft: Some(vec![
+            "B38M".to_string(),
+            "A32*".to_string(),
+            "*33".to_string(),
+        ]),
+        altitude_ranges: Some(vec![ApiRange {
             max: 3333,
             min: 2222,
-        }],
-        categories: vec!['B', 'P'],
-        data_sources: vec!["MLAT".to_string()],
-        airspaces: vec!["ESAA".to_string(), "DFZZ".to_string()],
-        gspeed: ApiRangeEnum::ApiRange(ApiRange {
+        }]),
+        categories: Some(vec!['B', 'P']),
+        data_sources: Some(vec!["MLAT".to_string()]),
+        airspaces: Some(vec!["ESAA".to_string(), "DFZZ".to_string()]),
+        gspeed: Some(ApiRangeEnum::ApiRange(ApiRange {
             max: 5000,
             min: 2222,
-        }),
-        //gspeed: ApiRangeEnum::U32(2332),
-        limit: 4444,
+        })),
+        limit: Some(4444),
         //..FullLiveFlightQuery::default()
     };
 
@@ -62,5 +73,5 @@ async fn main() {
         }
     };
 
-    println!("Flight Live Info: {:?}", live_flight_light);
+    println!("Light Flight Live Info: {:?}", live_flight_light);
 }

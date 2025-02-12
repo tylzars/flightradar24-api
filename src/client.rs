@@ -22,29 +22,19 @@ impl FlightRadarClient {
         }
     }
 
-    fn build_query_params(
-        other_query_in: &FullLiveFlightQuery,
-    ) -> Result<String, FlightRadarError> {
+    fn build_query_params(params: &FullLiveFlightQuery) -> Result<String, FlightRadarError> {
         let mut url: String = String::new();
 
-        if other_query_in.bounds.north != 0.0
-            && other_query_in.bounds.south != 0.0
-            && other_query_in.bounds.east != 0.0
-            && other_query_in.bounds.west != 0.0
-        {
-            //TODO: Check if valid bounds for lat/lon
+        if let Some(bounds) = &params.bounds {
             let bounds_str = format!(
                 "?bounds={},{},{},{}",
-                other_query_in.bounds.north,
-                other_query_in.bounds.south,
-                other_query_in.bounds.west,
-                other_query_in.bounds.east
+                bounds.north, bounds.south, bounds.west, bounds.east
             );
             url.push_str(&bounds_str)
         }
-        if !other_query_in.flights.is_empty() {
+        if let Some(flights) = &params.flights {
             url.push_str("&flights=");
-            for flight in &other_query_in.flights {
+            for flight in flights {
                 // The documentation doesn't really give use bounds for what this can be...
                 if flight.chars().all(char::is_alphanumeric) && flight.len() > 2 {
                     url.push_str(&flight.to_string());
@@ -55,9 +45,9 @@ impl FlightRadarClient {
             }
             url.pop();
         }
-        if !other_query_in.callsigns.is_empty() {
+        if let Some(callsigns) = &params.callsigns {
             url.push_str("&callsigns=");
-            for callsign in &other_query_in.callsigns {
+            for callsign in callsigns {
                 if callsign.chars().all(char::is_alphanumeric)
                     && callsign.len() > 2
                     && callsign.len() <= 8
@@ -73,9 +63,9 @@ impl FlightRadarClient {
             }
             url.pop();
         }
-        if !other_query_in.registrations.is_empty() {
+        if let Some(registrations) = &params.registrations {
             url.push_str("&registrations=");
-            for registration in &other_query_in.registrations {
+            for registration in registrations {
                 if registration
                     .chars()
                     .all(|c| c.is_alphanumeric() || c == '-')
@@ -93,9 +83,9 @@ impl FlightRadarClient {
             }
             url.pop();
         }
-        if !other_query_in.painted_as.is_empty() {
+        if let Some(painted_as) = &params.painted_as {
             url.push_str("&painted_as=");
-            for painted in &other_query_in.painted_as {
+            for painted in painted_as {
                 if painted.chars().all(char::is_alphabetic) && painted.len() == 3 {
                     url.push_str(&painted.to_string());
                     url.push(',');
@@ -108,9 +98,9 @@ impl FlightRadarClient {
             }
             url.pop();
         }
-        if !other_query_in.operating_as.is_empty() {
+        if let Some(operating_as) = &params.operating_as {
             url.push_str("&operating_as=");
-            for operating in &other_query_in.operating_as {
+            for operating in operating_as {
                 if operating.chars().all(char::is_alphabetic) && operating.len() == 3 {
                     url.push_str(&operating.to_string());
                     url.push(',');
@@ -123,9 +113,9 @@ impl FlightRadarClient {
             }
             url.pop();
         }
-        if !other_query_in.airports.is_empty() {
+        if let Some(airports) = &params.airports {
             url.push_str("&airports=");
-            for airport in &other_query_in.airports {
+            for airport in airports {
                 //TODO: Accurate check ICAO codes
                 if airport.chars().all(|c| c.is_alphabetic() || c == ':') {
                     url.push_str(&airport.to_string());
@@ -136,9 +126,9 @@ impl FlightRadarClient {
             }
             url.pop();
         }
-        if !other_query_in.routes.is_empty() {
+        if let Some(routes) = &params.routes {
             url.push_str("&routes=");
-            for route in &other_query_in.routes {
+            for route in routes {
                 //TODO: Accurate check ICAO codes
                 if route.chars().all(|c| c.is_alphabetic() || c == '-') {
                     url.push_str(&route.to_string());
@@ -149,9 +139,9 @@ impl FlightRadarClient {
             }
             url.pop();
         }
-        if !other_query_in.aircraft.is_empty() {
+        if let Some(aircraft) = &params.aircraft {
             url.push_str("&aircraft=");
-            for aircraft_iter in &other_query_in.aircraft {
+            for aircraft_iter in aircraft {
                 if aircraft_iter
                     .chars()
                     .all(|c| c.is_alphanumeric() || c == '*')
@@ -169,9 +159,9 @@ impl FlightRadarClient {
             }
             url.pop();
         }
-        if !other_query_in.altitude_ranges.is_empty() {
+        if let Some(altitude_ranges) = &params.altitude_ranges {
             url.push_str("&altitude_ranges=");
-            for altitude_range in &other_query_in.altitude_ranges {
+            for altitude_range in altitude_ranges {
                 url.push_str(&altitude_range.min.to_string());
                 url.push('-');
                 url.push_str(&altitude_range.max.to_string());
@@ -179,9 +169,9 @@ impl FlightRadarClient {
             }
             url.pop();
         }
-        if !other_query_in.squawks.is_empty() {
+        if let Some(squawks) = &params.squawks {
             url.push_str("&squawks=");
-            for squawk in &other_query_in.squawks {
+            for squawk in squawks {
                 if squawk <= &7777 {
                     url.push_str(&squawk.to_string());
                     url.push(',');
@@ -191,9 +181,9 @@ impl FlightRadarClient {
             }
             url.pop();
         }
-        if !other_query_in.categories.is_empty() {
+        if let Some(categories) = &params.categories {
             url.push_str("&categories=");
-            for category in &other_query_in.categories {
+            for category in categories {
                 if "PCMJTHBGDVON".contains(*category) {
                     url.push(*category);
                     url.push(',');
@@ -206,14 +196,14 @@ impl FlightRadarClient {
             }
             url.pop();
         }
-        if !other_query_in.data_sources.is_empty() {
+        if let Some(data_sources) = &params.data_sources {
             let valid_data_sources = [
                 "ADSB".to_string(),
                 "MLAT".to_string(),
                 "ESTIMATED".to_string(),
             ];
             url.push_str("&data_sources=");
-            for data_source in &other_query_in.data_sources {
+            for data_source in data_sources {
                 if valid_data_sources.contains(data_source) {
                     url.push_str(data_source);
                     url.push(',');
@@ -226,9 +216,9 @@ impl FlightRadarClient {
             }
             url.pop();
         }
-        if !other_query_in.airspaces.is_empty() {
+        if let Some(airspaces) = &params.airspaces {
             url.push_str("&airspaces=");
-            for airspace in &other_query_in.airspaces {
+            for airspace in airspaces {
                 if airspace.chars().all(char::is_alphabetic) {
                     url.push_str(&airspace.to_string());
                     url.push(',');
@@ -241,33 +231,34 @@ impl FlightRadarClient {
             }
             url.pop();
         }
-        match &other_query_in.gspeed {
-            ApiRangeEnum::None => url.push_str(""),
-            ApiRangeEnum::U32(val) => {
-                // Can't be greater than 5000
-                if val > &5000 {
-                    return Err(FlightRadarError::Parameter(format!("GSpeed: {}", val)));
+        if let Some(gspeed) = &params.gspeed {
+            match gspeed {
+                ApiRangeEnum::U32(val) => {
+                    // Can't be greater than 5000
+                    if val > &5000 {
+                        return Err(FlightRadarError::Parameter(format!("GSpeed: {}", val)));
+                    }
+                    url.push_str("&gspeed=");
+                    url.push_str(&val.to_string());
                 }
-                url.push_str("&gspeed=");
-                url.push_str(&val.to_string());
-            }
-            ApiRangeEnum::ApiRange(gspeed) => {
-                // Can't be greater than 5000
-                if gspeed.max > 5000 {
-                    return Err(FlightRadarError::Parameter(format!(
-                        "GSpeed: {}",
-                        gspeed.max
-                    )));
+                ApiRangeEnum::ApiRange(gspeed) => {
+                    // Can't be greater than 5000
+                    if gspeed.max > 5000 {
+                        return Err(FlightRadarError::Parameter(format!(
+                            "GSpeed: {}",
+                            gspeed.max
+                        )));
+                    }
+                    url.push_str("&gspeed=");
+                    url.push_str(&gspeed.min.to_string());
+                    url.push('-');
+                    url.push_str(&gspeed.max.to_string());
                 }
-                url.push_str("&gspeed=");
-                url.push_str(&gspeed.min.to_string());
-                url.push('-');
-                url.push_str(&gspeed.max.to_string());
             }
         };
-        if other_query_in.limit != 0 && other_query_in.limit <= 30000 {
+        if let Some(limit) = &params.limit {
             url.push_str("&limit=");
-            url.push_str(&other_query_in.limit.to_string());
+            url.push_str(&limit.to_string());
         }
 
         Ok(url)
@@ -584,22 +575,22 @@ pub struct AirportLite {
 /// Represents a query for flight positions.
 #[derive(Debug, Deserialize, Default)]
 pub struct FullLiveFlightQuery {
-    pub bounds: Bounds,
-    pub flights: Vec<String>,
-    pub callsigns: Vec<String>,
-    pub registrations: Vec<String>,
-    pub painted_as: Vec<String>,
-    pub operating_as: Vec<String>,
-    pub airports: Vec<String>,
-    pub routes: Vec<String>,
-    pub aircraft: Vec<String>,
-    pub altitude_ranges: Vec<ApiRange>,
-    pub squawks: Vec<u16>,
-    pub categories: Vec<char>,
-    pub data_sources: Vec<String>,
-    pub airspaces: Vec<String>,
-    pub gspeed: ApiRangeEnum,
-    pub limit: u32,
+    pub bounds: Option<Bounds>,
+    pub flights: Option<Vec<String>>,
+    pub callsigns: Option<Vec<String>>,
+    pub registrations: Option<Vec<String>>,
+    pub painted_as: Option<Vec<String>>,
+    pub operating_as: Option<Vec<String>>,
+    pub airports: Option<Vec<String>>,
+    pub routes: Option<Vec<String>>,
+    pub aircraft: Option<Vec<String>>,
+    pub altitude_ranges: Option<Vec<ApiRange>>,
+    pub squawks: Option<Vec<u16>>,
+    pub categories: Option<Vec<char>>,
+    pub data_sources: Option<Vec<String>>,
+    pub airspaces: Option<Vec<String>>,
+    pub gspeed: Option<ApiRangeEnum>,
+    pub limit: Option<u32>,
 }
 
 /// Represents a geographic bounding box.
@@ -618,12 +609,10 @@ pub struct ApiRange {
     pub max: u32,
 }
 
-#[derive(Debug, Deserialize, Default)]
+#[derive(Debug, Deserialize)]
 pub enum ApiRangeEnum {
     U32(u32),
     ApiRange(ApiRange),
-    #[default]
-    None,
 }
 
 /// Wrapper struct for flight-positions endpoint
