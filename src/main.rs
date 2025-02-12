@@ -65,11 +65,11 @@ async fn main() {
 
     println!("Flight Live Info: {:?}", live_flight_full);
 
-    let input_default = FullLiveFlightQuery {
-        ..FullLiveFlightQuery::default()
-    };
+    // let input_default = FullLiveFlightQuery {
+    //     ..FullLiveFlightQuery::default()
+    // };
 
-    let live_flight_light = match client.get_live_flight_light(Some(&input_default)).await {
+    let live_flight_light = match client.get_live_flight_light(Some(&input)).await {
         Ok(live_data) => live_data,
         Err(e) => {
             eprintln!("{}", e);
@@ -78,4 +78,14 @@ async fn main() {
     };
 
     println!("Light Flight Live Info: {:?}", live_flight_light);
+
+    let live_flight_light = match client.get_historic_flight(&1739401921, Some(&input)).await {
+        Ok(live_data) => live_data,
+        Err(e) => {
+            eprintln!("{}", e);
+            FullLiveFlightResponse::default()
+        }
+    };
+
+    println!("Historic Flight Info: {:?}", live_flight_light);
 }
