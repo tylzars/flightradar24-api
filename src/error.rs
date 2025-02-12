@@ -16,8 +16,8 @@ pub enum FlightRadarError {
 impl fmt::Display for FlightRadarError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            FlightRadarError::Http(err) => write!(f, "HTTP error: {}", err),
-            FlightRadarError::Parsing(msg) => write!(f, "Parsing error: {}", msg),
+            FlightRadarError::Http(err) => write!(f, "HTTP Error: {}", err),
+            FlightRadarError::Parsing(msg) => write!(f, "Parsing Error: {}", msg),
             FlightRadarError::General(msg) => write!(f, "Error: {}", msg),
             FlightRadarError::Parameter(msg) => write!(f, "Invalid Parameter: {}", msg),
         }

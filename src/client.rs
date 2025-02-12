@@ -22,6 +22,11 @@ impl FlightRadarClient {
         }
     }
 
+    /// Build parameters string for query URL
+    /// # Arguments
+    ///   * `params` - Structure of all possible parameters
+    /// # Returns
+    ///   `String` of params on success or a `FlightRadarError` on failure.
     fn build_query_params(params: &FullLiveFlightQuery) -> Result<String, FlightRadarError> {
         let mut url: String = String::new();
 
@@ -282,8 +287,8 @@ impl FlightRadarClient {
 
         // Parse
         let text = response.text().await?;
-        let airline: Airline =
-            serde_json::from_str(&text).map_err(|e| FlightRadarError::Parsing(e.to_string()))?;
+        let airline: Airline = serde_json::from_str(&text)
+            .map_err(|e| FlightRadarError::Parsing(format!("{}\nResponse: {}", e, text)))?;
 
         Ok(airline)
     }
@@ -306,8 +311,8 @@ impl FlightRadarClient {
 
         // Parse
         let text = response.text().await?;
-        let airport: Airport =
-            serde_json::from_str(&text).map_err(|e| FlightRadarError::Parsing(e.to_string()))?;
+        let airport: Airport = serde_json::from_str(&text)
+            .map_err(|e| FlightRadarError::Parsing(format!("{}\nResponse: {}", e, text)))?;
 
         Ok(airport)
     }
@@ -333,8 +338,8 @@ impl FlightRadarClient {
 
         // Parse
         let text = response.text().await?;
-        let airport: AirportLite =
-            serde_json::from_str(&text).map_err(|e| FlightRadarError::Parsing(e.to_string()))?;
+        let airport: AirportLite = serde_json::from_str(&text)
+            .map_err(|e| FlightRadarError::Parsing(format!("{}\nResponse: {}", e, text)))?;
 
         Ok(airport)
     }
@@ -373,8 +378,8 @@ impl FlightRadarClient {
         // Parse
         let text = response.text().await?;
         //println!("{:?}", text);
-        let live_data: FullLiveFlightResponse =
-            serde_json::from_str(&text).map_err(|e| FlightRadarError::Parsing(e.to_string()))?;
+        let live_data: FullLiveFlightResponse = serde_json::from_str(&text)
+            .map_err(|e| FlightRadarError::Parsing(format!("{}\nResponse: {}", e, text)))?;
 
         Ok(live_data)
     }
@@ -413,8 +418,8 @@ impl FlightRadarClient {
         // Parse
         let text = response.text().await?;
         //println!("{:?}", text);
-        let live_data: LightLiveFlightResponse =
-            serde_json::from_str(&text).map_err(|e| FlightRadarError::Parsing(e.to_string()))?;
+        let live_data: LightLiveFlightResponse = serde_json::from_str(&text)
+            .map_err(|e| FlightRadarError::Parsing(format!("{}\nResponse: {}", e, text)))?;
 
         Ok(live_data)
     }
@@ -448,8 +453,8 @@ impl FlightRadarClient {
 
         // Parse
         let text = response.text().await?;
-        let flights: Vec<Flight> =
-            serde_json::from_str(&text).map_err(|e| FlightRadarError::Parsing(e.to_string()))?;
+        let flights: Vec<Flight> = serde_json::from_str(&text)
+            .map_err(|e| FlightRadarError::Parsing(format!("{}\nResponse: {}", e, text)))?;
 
         Ok(flights)
     }
@@ -481,8 +486,8 @@ impl FlightRadarClient {
 
         // Parse
         let text = response.text().await?;
-        let usage: ApiUsageResponse =
-            serde_json::from_str(&text).map_err(|e| FlightRadarError::Parsing(e.to_string()))?;
+        let usage: ApiUsageResponse = serde_json::from_str(&text)
+            .map_err(|e| FlightRadarError::Parsing(format!("{}\nResponse: {}", e, text)))?;
 
         Ok(usage)
     }

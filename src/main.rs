@@ -65,7 +65,11 @@ async fn main() {
 
     println!("Flight Live Info: {:?}", live_flight_full);
 
-    let live_flight_light = match client.get_live_flight_light(Some(&input)).await {
+    let input_default = FullLiveFlightQuery {
+        ..FullLiveFlightQuery::default()
+    };
+
+    let live_flight_light = match client.get_live_flight_light(Some(&input_default)).await {
         Ok(live_data) => live_data,
         Err(e) => {
             eprintln!("{}", e);
