@@ -88,4 +88,17 @@ async fn main() {
     };
 
     println!("Historic Flight Info: {:?}", live_flight_light);
+
+    let live_flight_light = match client
+        .get_historic_flight_light(&1739401921, Some(&input))
+        .await
+    {
+        Ok(live_data) => live_data,
+        Err(e) => {
+            eprintln!("{}", e);
+            LightLiveFlightResponse::default()
+        }
+    };
+
+    println!("Light Historic Flight Info: {:?}", live_flight_light);
 }

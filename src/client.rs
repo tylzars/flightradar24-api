@@ -465,10 +465,57 @@ impl FlightRadarClient {
         // Parse
         let text = response.text().await?;
         //println!("\n{:?}\n", text);
-        let live_data: FullLiveFlightResponse = serde_json::from_str(&text)
+        let historic_data: FullLiveFlightResponse = serde_json::from_str(&text)
             .map_err(|e| FlightRadarError::Parsing(format!("{}\nResponse: {}", e, text)))?;
 
-        Ok(live_data)
+        Ok(historic_data)
+    }
+
+    pub async fn get_historic_flight_light(
+        &self,
+        timestamp: &u64,
+        other_queries: Option<&FullLiveFlightQuery>,
+    ) -> Result<LightLiveFlightResponse, FlightRadarError> {
+        // Check Timestamp
+        const MIN_TIMESTAMP: u64 = 1462924800;
+        if timestamp < &MIN_TIMESTAMP {
+            return Err(FlightRadarError::Parameter(format!(
+                "Invalid Timestamp: {}",
+                timestamp
+            )));
+        };
+
+        // Build optional params
+        let params_back = if let Some(other_queries) = other_queries {
+            match Self::build_query_params(other_queries) {
+                Ok(param_str) => param_str[1..param_str.len()].to_string(),
+                Err(_) => String::from(""),
+            }
+        } else {
+            String::from("")
+        };
+
+        let endpoint = format!(
+            "{}historic/flight-positions/light?timestamp={}&{}",
+            self.base_url, timestamp, params_back
+        );
+
+        // GET
+        let response = self
+            .client
+            .get(&endpoint)
+            .header("Accept-Version", "v1") // Add "Accept-Version: v1"
+            .bearer_auth(&self.api_key) // Add "Authorization: Bearer <API_KEY>"
+            .send()
+            .await?;
+
+        // Parse
+        let text = response.text().await?;
+        //println!("\n{:?}\n", text);
+        let historic_data: LightLiveFlightResponse = serde_json::from_str(&text)
+            .map_err(|e| FlightRadarError::Parsing(format!("{}\nResponse: {}", e, text)))?;
+
+        Ok(historic_data)
     }
 
     /// Fetches flight information by flight ID.
