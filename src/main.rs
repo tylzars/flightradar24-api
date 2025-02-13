@@ -101,4 +101,14 @@ async fn main() {
     };
 
     println!("Light Historic Flight Info: {:?}", live_flight_light);
+
+    let airline_info = match client.get_airline_by_icao("AAA").await {
+        Ok(airline) => airline,
+        Err(e) => {
+            eprintln!("Error fetching flight data: {}", e);
+            Airline::default()
+        }
+    };
+
+    println!("Airline Info: {:?}", airline_info);
 }

@@ -269,14 +269,12 @@ impl FlightRadarClient {
         Ok(url)
     }
 
-    /// Fetches airline information by ICAO.
+    /// Issue the GET command to API Endpoint
     /// # Arguments
-    ///   * `icao` - The identifier for the airline.
-    /// # Returns
-    ///   A `Airline` struct on success or a `FlightRadarError` on failure.
-    pub async fn get_airline_by_icao(&self, icao: &str) -> Result<Airline, FlightRadarError> {
-        // Make URL and GET
-        let url = format!("{}static/airlines/{}/light", self.base_url, icao);
+    ///   * `url` - API URL to send GET request to
+    /// Returns
+    ///   A `String` on success and `FlightRadarError` on failure.
+    pub async fn query_endpoint(&self, url: String) -> Result<String, FlightRadarError> {
         let response = self
             .client
             .get(&url)
@@ -287,6 +285,22 @@ impl FlightRadarClient {
 
         // Parse
         let text = response.text().await?;
+        Ok(text)
+    }
+
+    /// Fetches airline information by ICAO.
+    /// # Arguments
+    ///   * `icao` - The identifier for the airline.
+    /// # Returns
+    ///   A `Airline` struct on success or a `FlightRadarError` on failure.
+    pub async fn get_airline_by_icao(&self, icao: &str) -> Result<Airline, FlightRadarError> {
+        // Make URL and GET
+        let url = format!("{}static/airlines/{}/light", self.base_url, icao);
+
+        let text = match self.query_endpoint(url).await {
+            Ok(data) => data,
+            Err(_) => return Err(FlightRadarError::General("GET Request Failed".to_string())),
+        };
         let airline: Airline = serde_json::from_str(&text)
             .map_err(|e| FlightRadarError::Parsing(format!("{}\nResponse: {}", e, text)))?;
 
