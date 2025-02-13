@@ -17,9 +17,13 @@ impl FlightRadarClient {
         FlightRadarClient {
             client: Client::new(),
             // This is an example base URL. Adjust as needed.
-            base_url: "https://fr24api.flightradar24.com/api/sandbox/".to_string(),
+            base_url: "https://fr24api.flightradar24.com/api/".to_string(),
             api_key,
         }
+    }
+
+    pub fn update_base_url(&mut self, base_url: String) {
+        self.base_url = base_url;
     }
 
     /// Build parameters string for query URL
@@ -272,7 +276,7 @@ impl FlightRadarClient {
     /// Issue the GET command to API Endpoint
     /// # Arguments
     ///   * `url` - API URL to send GET request to
-    /// Returns
+    /// # Returns
     ///   A `String` on success and `FlightRadarError` on failure.
     pub async fn query_endpoint(&self, url: String) -> Result<String, FlightRadarError> {
         let response = self
