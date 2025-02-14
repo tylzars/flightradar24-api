@@ -288,8 +288,8 @@ impl FlightRadarClient {
             .await?;
 
         // Parse
-        let text = response.text().await?;
-        Ok(text)
+        let response_text = response.text().await?;
+        Ok(response_text)
     }
 
     /// Fetches airline information by ICAO.
@@ -300,11 +300,12 @@ impl FlightRadarClient {
     pub async fn get_airline_by_icao(&self, icao: &str) -> Result<Airline, FlightRadarError> {
         // Make URL and GET
         let url = format!("{}static/airlines/{}/light", self.base_url, icao);
-
         let text = match self.query_endpoint(url).await {
             Ok(data) => data,
             Err(_) => return Err(FlightRadarError::General("GET Request Failed".to_string())),
         };
+
+        // Parse
         let airline: Airline = serde_json::from_str(&text)
             .map_err(|e| FlightRadarError::Parsing(format!("{}\nResponse: {}", e, text)))?;
 
@@ -319,16 +320,12 @@ impl FlightRadarClient {
     pub async fn get_airport_by_code(&self, code: &str) -> Result<Airport, FlightRadarError> {
         // Make URL and GET
         let url = format!("{}static/airports/{}/full", self.base_url, code);
-        let response = self
-            .client
-            .get(&url)
-            .header("Accept-Version", "v1") // Add "Accept-Version: v1"
-            .bearer_auth(&self.api_key) // Add "Authorization: Bearer <API_KEY>"
-            .send()
-            .await?;
+        let text = match self.query_endpoint(url).await {
+            Ok(data) => data,
+            Err(_) => return Err(FlightRadarError::General("GET Request Failed".to_string())),
+        };
 
         // Parse
-        let text = response.text().await?;
         let airport: Airport = serde_json::from_str(&text)
             .map_err(|e| FlightRadarError::Parsing(format!("{}\nResponse: {}", e, text)))?;
 
@@ -346,16 +343,12 @@ impl FlightRadarClient {
     ) -> Result<AirportLite, FlightRadarError> {
         // Make URL and GET
         let url = format!("{}static/airports/{}/light", self.base_url, code);
-        let response = self
-            .client
-            .get(&url)
-            .header("Accept-Version", "v1") // Add "Accept-Version: v1"
-            .bearer_auth(&self.api_key) // Add "Authorization: Bearer <API_KEY>"
-            .send()
-            .await?;
+        let text = match self.query_endpoint(url).await {
+            Ok(data) => data,
+            Err(_) => return Err(FlightRadarError::General("GET Request Failed".to_string())),
+        };
 
         // Parse
-        let text = response.text().await?;
         let airport: AirportLite = serde_json::from_str(&text)
             .map_err(|e| FlightRadarError::Parsing(format!("{}\nResponse: {}", e, text)))?;
 
@@ -385,17 +378,13 @@ impl FlightRadarClient {
         //println!("{}", endpoint);
 
         // GET
-        let response = self
-            .client
-            .get(&endpoint)
-            .header("Accept-Version", "v1") // Add "Accept-Version: v1"
-            .bearer_auth(&self.api_key) // Add "Authorization: Bearer <API_KEY>"
-            .send()
-            .await?;
+        let text = match self.query_endpoint(endpoint).await {
+            Ok(data) => data,
+            Err(_) => return Err(FlightRadarError::General("GET Request Failed".to_string())),
+        };
+        //println!("{:?}", text);
 
         // Parse
-        let text = response.text().await?;
-        //println!("{:?}", text);
         let live_data: FullLiveFlightResponse = serde_json::from_str(&text)
             .map_err(|e| FlightRadarError::Parsing(format!("{}\nResponse: {}", e, text)))?;
 
@@ -425,17 +414,13 @@ impl FlightRadarClient {
         //println!("{}", endpoint);
 
         // GET
-        let response = self
-            .client
-            .get(&endpoint)
-            .header("Accept-Version", "v1") // Add "Accept-Version: v1"
-            .bearer_auth(&self.api_key) // Add "Authorization: Bearer <API_KEY>"
-            .send()
-            .await?;
+        let text = match self.query_endpoint(endpoint).await {
+            Ok(data) => data,
+            Err(_) => return Err(FlightRadarError::General("GET Request Failed".to_string())),
+        };
+        //println!("{:?}", text);
 
         // Parse
-        let text = response.text().await?;
-        //println!("{:?}", text);
         let live_data: LightLiveFlightResponse = serde_json::from_str(&text)
             .map_err(|e| FlightRadarError::Parsing(format!("{}\nResponse: {}", e, text)))?;
 
@@ -472,17 +457,13 @@ impl FlightRadarClient {
         );
 
         // GET
-        let response = self
-            .client
-            .get(&endpoint)
-            .header("Accept-Version", "v1") // Add "Accept-Version: v1"
-            .bearer_auth(&self.api_key) // Add "Authorization: Bearer <API_KEY>"
-            .send()
-            .await?;
+        let text = match self.query_endpoint(endpoint).await {
+            Ok(data) => data,
+            Err(_) => return Err(FlightRadarError::General("GET Request Failed".to_string())),
+        };
+        //println!("{:?}", text);
 
         // Parse
-        let text = response.text().await?;
-        //println!("\n{:?}\n", text);
         let historic_data: FullLiveFlightResponse = serde_json::from_str(&text)
             .map_err(|e| FlightRadarError::Parsing(format!("{}\nResponse: {}", e, text)))?;
 
@@ -519,17 +500,13 @@ impl FlightRadarClient {
         );
 
         // GET
-        let response = self
-            .client
-            .get(&endpoint)
-            .header("Accept-Version", "v1") // Add "Accept-Version: v1"
-            .bearer_auth(&self.api_key) // Add "Authorization: Bearer <API_KEY>"
-            .send()
-            .await?;
+        let text = match self.query_endpoint(endpoint).await {
+            Ok(data) => data,
+            Err(_) => return Err(FlightRadarError::General("GET Request Failed".to_string())),
+        };
+        //println!("{:?}", text);
 
         // Parse
-        let text = response.text().await?;
-        //println!("\n{:?}\n", text);
         let historic_data: LightLiveFlightResponse = serde_json::from_str(&text)
             .map_err(|e| FlightRadarError::Parsing(format!("{}\nResponse: {}", e, text)))?;
 
@@ -555,16 +532,13 @@ impl FlightRadarClient {
 
         // Make URL and GET
         let url = format!("{}flight-tracks?flight_id={}", self.base_url, flight_id);
-        let response = self
-            .client
-            .get(&url)
-            .header("Accept-Version", "v1") // Add "Accept-Version: v1"
-            .bearer_auth(&self.api_key) // Add "Authorization: Bearer <API_KEY>"
-            .send()
-            .await?;
+        let text = match self.query_endpoint(url).await {
+            Ok(data) => data,
+            Err(_) => return Err(FlightRadarError::General("GET Request Failed".to_string())),
+        };
+        //println!("{:?}", text);
 
         // Parse
-        let text = response.text().await?;
         let flights: Vec<Flight> = serde_json::from_str(&text)
             .map_err(|e| FlightRadarError::Parsing(format!("{}\nResponse: {}", e, text)))?;
 
@@ -588,16 +562,13 @@ impl FlightRadarClient {
 
         // Make URL and GET
         let url = format!("{}usage?period={}", self.base_url, period);
-        let response = self
-            .client
-            .get(&url)
-            .header("Accept-Version", "v1") // Add "Accept-Version: v1"
-            .bearer_auth(&self.api_key) // Add "Authorization: Bearer <API_KEY>"
-            .send()
-            .await?;
+        let text = match self.query_endpoint(url).await {
+            Ok(data) => data,
+            Err(_) => return Err(FlightRadarError::General("GET Request Failed".to_string())),
+        };
+        //println!("{:?}", text);
 
         // Parse
-        let text = response.text().await?;
         let usage: ApiUsageResponse = serde_json::from_str(&text)
             .map_err(|e| FlightRadarError::Parsing(format!("{}\nResponse: {}", e, text)))?;
 
