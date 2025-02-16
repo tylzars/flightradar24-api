@@ -3,8 +3,7 @@ use std::vec;
 use dotenv::dotenv;
 use flightradar24_api::client::*;
 
-#[tokio::main]
-async fn main() {
+fn main() {
     dotenv().ok();
     let api_key = std::env::var("API_KEY").expect("API_KEY must be set.");
 
@@ -57,7 +56,7 @@ async fn main() {
         //..FullLiveFlightQuery::default()
     };
 
-    let live_flight_full = match client.get_live_flight(Some(&input)).await {
+    let live_flight_full = match client.get_live_flight(Some(&input)) {
         Ok(live_data) => live_data,
         Err(e) => {
             eprintln!("{}", e);
@@ -71,7 +70,7 @@ async fn main() {
     //     ..FullLiveFlightQuery::default()
     // };
 
-    let live_flight_light = match client.get_live_flight_light(Some(&input)).await {
+    let live_flight_light = match client.get_live_flight_light(Some(&input)) {
         Ok(live_data) => live_data,
         Err(e) => {
             eprintln!("{}", e);
@@ -81,7 +80,7 @@ async fn main() {
 
     println!("Light Flight Live Info: {:?}", live_flight_light);
 
-    let live_flight_light = match client.get_historic_flight(&1739401921, Some(&input)).await {
+    let live_flight_light = match client.get_historic_flight(&1739401921, Some(&input)) {
         Ok(live_data) => live_data,
         Err(e) => {
             eprintln!("{}", e);
@@ -91,10 +90,7 @@ async fn main() {
 
     println!("Historic Flight Info: {:?}", live_flight_light);
 
-    let live_flight_light = match client
-        .get_historic_flight_light(&1739401921, Some(&input))
-        .await
-    {
+    let live_flight_light = match client.get_historic_flight_light(&1739401921, Some(&input)) {
         Ok(live_data) => live_data,
         Err(e) => {
             eprintln!("{}", e);
@@ -104,7 +100,7 @@ async fn main() {
 
     println!("Light Historic Flight Info: {:?}", live_flight_light);
 
-    let airline_info = match client.get_airline_by_icao("AAA").await {
+    let airline_info = match client.get_airline_by_icao("AAA") {
         Ok(airline) => airline,
         Err(e) => {
             eprintln!("Error fetching flight data: {}", e);

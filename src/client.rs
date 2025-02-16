@@ -1,5 +1,5 @@
 use crate::error::FlightRadarError;
-use reqwest::Client;
+use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
 
 /// Main structure for storing API internal data
@@ -44,7 +44,6 @@ impl FlightRadarClient {
         if let Some(flights) = &params.flights {
             url.push_str("&flights=");
             for flight in flights {
-                // The documentation doesn't really give use bounds for what this can be...
                 if flight.chars().all(char::is_alphanumeric) && flight.len() > 2 {
                     url.push_str(&flight.to_string());
                     url.push(',');
@@ -278,17 +277,14 @@ impl FlightRadarClient {
     ///   * `url` - API URL to send GET request to
     /// # Returns
     ///   A `String` on success and `FlightRadarError` on failure.
-    pub async fn query_endpoint(&self, url: String) -> Result<String, FlightRadarError> {
+    pub fn query_endpoint(&self, url: String) -> Result<String, FlightRadarError> {
         let response = self
             .client
             .get(&url)
-            .header("Accept-Version", "v1") // Add "Accept-Version: v1"
-            .bearer_auth(&self.api_key) // Add "Authorization: Bearer <API_KEY>"
-            .send()
-            .await?;
-
-        // Parse
-        let response_text = response.text().await?;
+            .header("Accept-Version", "v1")
+            .bearer_auth(&self.api_key)
+            .send()?; // synchronous send
+        let response_text = response.text()?; // synchronous text retrieval
         Ok(response_text)
     }
 
@@ -297,10 +293,10 @@ impl FlightRadarClient {
     ///   * `icao` - The identifier for the airline.
     /// # Returns
     ///   A `Airline` struct on success or a `FlightRadarError` on failure.
-    pub async fn get_airline_by_icao(&self, icao: &str) -> Result<Airline, FlightRadarError> {
+    pub fn get_airline_by_icao(&self, icao: &str) -> Result<Airline, FlightRadarError> {
         // Make URL and GET
         let url = format!("{}static/airlines/{}/light", self.base_url, icao);
-        let text = match self.query_endpoint(url).await {
+        let text = match self.query_endpoint(url) {
             Ok(data) => data,
             Err(_) => return Err(FlightRadarError::General("GET Request Failed".to_string())),
         };
@@ -317,10 +313,10 @@ impl FlightRadarClient {
     ///   * `code` - The identifier for the airport.
     /// # Returns
     ///   A `Airport` struct on success or a `FlightRadarError` on failure.
-    pub async fn get_airport_by_code(&self, code: &str) -> Result<Airport, FlightRadarError> {
+    pub fn get_airport_by_code(&self, code: &str) -> Result<Airport, FlightRadarError> {
         // Make URL and GET
         let url = format!("{}static/airports/{}/full", self.base_url, code);
-        let text = match self.query_endpoint(url).await {
+        let text = match self.query_endpoint(url) {
             Ok(data) => data,
             Err(_) => return Err(FlightRadarError::General("GET Request Failed".to_string())),
         };
@@ -337,13 +333,10 @@ impl FlightRadarClient {
     ///   * `code` - The identifier for the airport.
     /// # Returns
     ///   A `Airport` struct on success or a `FlightRadarError` on failure.
-    pub async fn get_airport_lite_by_code(
-        &self,
-        code: &str,
-    ) -> Result<AirportLite, FlightRadarError> {
+    pub fn get_airport_lite_by_code(&self, code: &str) -> Result<AirportLite, FlightRadarError> {
         // Make URL and GET
         let url = format!("{}static/airports/{}/light", self.base_url, code);
-        let text = match self.query_endpoint(url).await {
+        let text = match self.query_endpoint(url) {
             Ok(data) => data,
             Err(_) => return Err(FlightRadarError::General("GET Request Failed".to_string())),
         };
@@ -357,11 +350,10 @@ impl FlightRadarClient {
 
     /// Fetches live flight information by location (or other parameters).
     /// # Arguments
-    ///   * `bounds` - The bounds of an area to get live information
     ///   * `other_queries` - Optional parameters to narrow down data
     /// # Returns
     ///   A `FullLiveFlightResponse` struct on success or a `FlightRadarError` on failure.
-    pub async fn get_live_flight(
+    pub fn get_live_flight(
         &self,
         other_queries: Option<&FullLiveFlightQuery>,
     ) -> Result<FullLiveFlightResponse, FlightRadarError> {
@@ -378,7 +370,7 @@ impl FlightRadarClient {
         //println!("{}", endpoint);
 
         // GET
-        let text = match self.query_endpoint(endpoint).await {
+        let text = match self.query_endpoint(endpoint) {
             Ok(data) => data,
             Err(_) => return Err(FlightRadarError::General("GET Request Failed".to_string())),
         };
@@ -393,11 +385,10 @@ impl FlightRadarClient {
 
     /// Fetches light live flight information by location (or other parameters).
     /// # Arguments
-    ///   * `bounds` - The bounds of an area to get live information
     ///   * `other_queries` - Optional parameters to narrow down data
     /// # Returns
     ///   A `LightLiveFlightResponse` struct on success or a `FlightRadarError` on failure.
-    pub async fn get_live_flight_light(
+    pub fn get_live_flight_light(
         &self,
         other_queries: Option<&FullLiveFlightQuery>,
     ) -> Result<LightLiveFlightResponse, FlightRadarError> {
@@ -414,7 +405,7 @@ impl FlightRadarClient {
         //println!("{}", endpoint);
 
         // GET
-        let text = match self.query_endpoint(endpoint).await {
+        let text = match self.query_endpoint(endpoint) {
             Ok(data) => data,
             Err(_) => return Err(FlightRadarError::General("GET Request Failed".to_string())),
         };
@@ -427,7 +418,13 @@ impl FlightRadarClient {
         Ok(live_data)
     }
 
-    pub async fn get_historic_flight(
+    /// Fetches historic flight information by timestamp (or other parameters).
+    /// # Arguments
+    ///   * `timestamp` - Timestamp to gather information from
+    ///   * `other_queries` - Optional parameters to narrow down data
+    /// # Returns
+    ///   A `FullLiveFlightResponse` struct on success or a `FlightRadarError` on failure.
+    pub fn get_historic_flight(
         &self,
         timestamp: &u64,
         other_queries: Option<&FullLiveFlightQuery>,
@@ -457,7 +454,7 @@ impl FlightRadarClient {
         );
 
         // GET
-        let text = match self.query_endpoint(endpoint).await {
+        let text = match self.query_endpoint(endpoint) {
             Ok(data) => data,
             Err(_) => return Err(FlightRadarError::General("GET Request Failed".to_string())),
         };
@@ -470,7 +467,13 @@ impl FlightRadarClient {
         Ok(historic_data)
     }
 
-    pub async fn get_historic_flight_light(
+    /// Fetches light historic flight information by timestamp (or other parameters).
+    /// # Arguments
+    ///   * `timestamp` - Timestamp to gather information from
+    ///   * `other_queries` - Optional parameters to narrow down data
+    /// # Returns
+    ///   A `LightLiveFlightResponse` struct on success or a `FlightRadarError` on failure.
+    pub fn get_historic_flight_light(
         &self,
         timestamp: &u64,
         other_queries: Option<&FullLiveFlightQuery>,
@@ -500,7 +503,7 @@ impl FlightRadarClient {
         );
 
         // GET
-        let text = match self.query_endpoint(endpoint).await {
+        let text = match self.query_endpoint(endpoint) {
             Ok(data) => data,
             Err(_) => return Err(FlightRadarError::General("GET Request Failed".to_string())),
         };
@@ -518,7 +521,7 @@ impl FlightRadarClient {
     ///   * `flight_id` - The identifier for the flight.
     /// # Returns
     ///   A `Flight` struct on success or a `FlightRadarError` on failure.
-    pub async fn get_flight_tracks_by_id(
+    pub fn get_flight_tracks_by_id(
         &self,
         flight_id: &str,
     ) -> Result<Vec<Flight>, FlightRadarError> {
@@ -532,7 +535,7 @@ impl FlightRadarClient {
 
         // Make URL and GET
         let url = format!("{}flight-tracks?flight_id={}", self.base_url, flight_id);
-        let text = match self.query_endpoint(url).await {
+        let text = match self.query_endpoint(url) {
             Ok(data) => data,
             Err(_) => return Err(FlightRadarError::General("GET Request Failed".to_string())),
         };
@@ -550,7 +553,7 @@ impl FlightRadarClient {
     ///   * `period` - Backwards time to gather usage (Allowed: 24h | 7d | 30d | 1y)
     /// # Returns
     ///   A `ApiUsageResponse` struct on success or a `FlightRadarError` on failure.
-    pub async fn get_api_usage(&self, period: &str) -> Result<ApiUsageResponse, FlightRadarError> {
+    pub fn get_api_usage(&self, period: &str) -> Result<ApiUsageResponse, FlightRadarError> {
         // If value isn't valid, exit function and raise error
         (match period {
             "24h" | "7d" | "30d" | "1y" => Ok(()),
@@ -562,7 +565,7 @@ impl FlightRadarClient {
 
         // Make URL and GET
         let url = format!("{}usage?period={}", self.base_url, period);
-        let text = match self.query_endpoint(url).await {
+        let text = match self.query_endpoint(url) {
             Ok(data) => data,
             Err(_) => return Err(FlightRadarError::General("GET Request Failed".to_string())),
         };
