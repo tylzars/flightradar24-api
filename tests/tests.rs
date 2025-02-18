@@ -28,20 +28,17 @@ mod tests {
                     Vec::with_capacity(1)
                 }
             };
-    
-        println!("Groundspeeds: {:?}", get_gspeed_from_flight(&flight_list));
-        println!("Timestamps: {:?}", get_timestamps_from_flight(&flight_list));
-        println!("Latitudes: {:?}", get_lat_from_flight(&flight_list));
-        println!("Longitudes: {:?}", get_lon_from_flight(&flight_list));
-        println!("Altitudes: {:?}", get_alt_from_flight(&flight_list));
-        println!("Vspeeds: {:?}", get_vspeed_from_flight(&flight_list));
-        println!("Tracks: {:?}", get_track_from_flight(&flight_list));
-        println!("Squacks: {:?}", get_squack_from_flight(&flight_list));
-        println!("Callsigns: {:?}", get_callsign_from_flight(&flight_list));
-        println!("Sources: {:?}", get_source_from_flight(&flight_list));
 
         // Actually test
-        assert_eq!(3, get_gspeed_from_flight(&flight_list).len())
+        assert_eq!(3, get_gspeed_from_flight(&flight_list).len());
+        assert_eq!(3, get_timestamps_from_flight(&flight_list).len());
+        assert_eq!(3, get_lon_from_flight(&flight_list).len());
+        assert_eq!(3, get_alt_from_flight(&flight_list).len());
+        assert_eq!(3, get_vspeed_from_flight(&flight_list).len());
+        assert_eq!(3, get_track_from_flight(&flight_list).len());
+        assert_eq!(3, get_squack_from_flight(&flight_list).len());
+        assert_eq!(3, get_callsign_from_flight(&flight_list).len());
+        assert_eq!(3, get_source_from_flight(&flight_list).len());
     }
     
     #[test]
@@ -60,7 +57,7 @@ mod tests {
             }
         };
     
-        println!("Usage: {:?}", api_usage);
+        assert_eq!(2, api_usage.data.len());
     }
 
     #[test]
@@ -79,7 +76,7 @@ mod tests {
             }
         };
     
-        println!("Airline Info: {:?}", airline_info);
+        assert_eq!(3, airline_info.icao.len());
     }
 
     #[test]
@@ -98,7 +95,7 @@ mod tests {
             }
         };
     
-        println!("Airport Info: {:?}", airport_info);
+        assert_eq!(4, airport_info.icao.len());
     }
 
     #[test]
@@ -117,7 +114,7 @@ mod tests {
             }
         };
     
-        println!("Airport Lite Info: {:?}", airport_info);
+        assert_eq!(4, airport_info.icao.len());
     }    
 
     #[test]
@@ -180,7 +177,7 @@ mod tests {
             }
         };
 
-        println!("Flight Live Info: {:?}", live_flight_full);
+        assert_eq!(1, live_flight_full.data.len());
     }
 
     #[test]
@@ -244,7 +241,7 @@ mod tests {
             }
         };
     
-        println!("Light Flight Live Info: {:?}", live_flight_light);
+        assert_eq!(1, live_flight_light.data.len());
     }
 
     #[test]
@@ -308,7 +305,7 @@ mod tests {
             }
         };
     
-        println!("Historic Flight Info: {:?}", historic_flight);
+        assert_eq!(1, historic_flight.data.len());
     }
 
     #[test]
@@ -372,7 +369,6 @@ mod tests {
             }
         };
     
-        println!("Light Historic Flight Info: {:?}", historic_flight_light);
-    
+        assert_eq!(2, historic_flight_light.data.len());
     }
 }
