@@ -4,14 +4,20 @@ mod tests {
     use dotenv::dotenv;
     use flightradar24_api::client::*;
     use flightradar24_api::flight_tracks_helper::*;
-    
-    #[test]
-    fn check_flight_tracks_by_id() {
+
+    fn setup_client() -> FlightRadarClient {
         dotenv().ok();
         let api_key = std::env::var("API_KEY").expect("API_KEY must be set.");
     
         let mut client = FlightRadarClient::new(api_key);
         client.update_base_url("https://fr24api.flightradar24.com/api/sandbox/".to_string());
+
+        client
+    }
+    
+    #[test]
+    fn check_flight_tracks_by_id() {
+        let client = setup_client();
         let flight_id = "390163bf"; // Must be hexcode
     
         let flight_list: Vec<flightradar24_api::client::Flight> =
@@ -33,6 +39,9 @@ mod tests {
         println!("Squacks: {:?}", get_squack_from_flight(&flight_list));
         println!("Callsigns: {:?}", get_callsign_from_flight(&flight_list));
         println!("Sources: {:?}", get_source_from_flight(&flight_list));
+
+        // Actually test
+        assert_eq!(3, get_gspeed_from_flight(&flight_list).len())
     }
     
     #[test]
