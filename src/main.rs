@@ -8,7 +8,6 @@ fn main() {
     let api_key = std::env::var("API_KEY").expect("API_KEY must be set.");
 
     let mut client = FlightRadarClient::new(api_key);
-
     client.update_base_url("https://fr24api.flightradar24.com/api/sandbox/".to_string());
 
     let bounds_in = Bounds {
