@@ -5,6 +5,13 @@ mod tests {
     use flightradar24_api::client::*;
     use flightradar24_api::flight_tracks_helper::*;
 
+    const BOUNDS_IN: Bounds = Bounds {
+        north: 42.473,
+        south: 37.331,
+        west: -10.014,
+        east: -4.115,
+    };
+
     fn setup_client() -> FlightRadarClient {
         dotenv().ok();
         let api_key = std::env::var("API_KEY").expect("API_KEY must be set.");
@@ -125,15 +132,8 @@ mod tests {
         let mut client = FlightRadarClient::new(api_key);
         client.update_base_url("https://fr24api.flightradar24.com/api/sandbox/".to_string());
 
-        let bounds_in = Bounds {
-            north: 42.473,
-            south: 37.331,
-            west: -10.014,
-            east: -4.115,
-        };
-
         let input = FullLiveFlightQuery {
-            bounds: Some(bounds_in),
+            bounds: Some(BOUNDS_IN),
             squawks: Some(vec![2222, 3333, 5555, 7777]),
             flights: Some(vec!["DL4204".to_string(), "aa1".to_string()]),
             callsigns: Some(vec!["WJA329".to_string(), "w1ssstt".to_string()]),
@@ -188,15 +188,8 @@ mod tests {
         let mut client = FlightRadarClient::new(api_key);
         client.update_base_url("https://fr24api.flightradar24.com/api/sandbox/".to_string());
     
-        let bounds_in = Bounds {
-            north: 42.473,
-            south: 37.331,
-            west: -10.014,
-            east: -4.115,
-        };
-    
         let input = FullLiveFlightQuery {
-            bounds: Some(bounds_in),
+            bounds: Some(BOUNDS_IN),
             squawks: Some(vec![2222, 3333, 5555, 7777]),
             flights: Some(vec!["DL4204".to_string(), "aa1".to_string()]),
             callsigns: Some(vec!["WJA329".to_string(), "w1ssstt".to_string()]),
@@ -252,15 +245,8 @@ mod tests {
         let mut client = FlightRadarClient::new(api_key);
         client.update_base_url("https://fr24api.flightradar24.com/api/sandbox/".to_string());
     
-        let bounds_in = Bounds {
-            north: 42.473,
-            south: 37.331,
-            west: -10.014,
-            east: -4.115,
-        };
-    
         let input = FullLiveFlightQuery {
-            bounds: Some(bounds_in),
+            bounds: Some(BOUNDS_IN),
             squawks: Some(vec![2222, 3333, 5555, 7777]),
             flights: Some(vec!["DL4204".to_string(), "aa1".to_string()]),
             callsigns: Some(vec!["WJA329".to_string(), "w1ssstt".to_string()]),
@@ -316,15 +302,8 @@ mod tests {
         let mut client = FlightRadarClient::new(api_key);
         client.update_base_url("https://fr24api.flightradar24.com/api/sandbox/".to_string());
     
-        let bounds_in = Bounds {
-            north: 42.473,
-            south: 37.331,
-            west: -10.014,
-            east: -4.115,
-        };
-    
         let input = FullLiveFlightQuery {
-            bounds: Some(bounds_in),
+            bounds: Some(BOUNDS_IN),
             squawks: Some(vec![2222, 3333, 5555, 7777]),
             flights: Some(vec!["DL4204".to_string(), "aa1".to_string()]),
             callsigns: Some(vec!["WJA329".to_string(), "w1ssstt".to_string()]),
