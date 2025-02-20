@@ -15,18 +15,18 @@ mod tests {
     fn setup_client() -> FlightRadarClient {
         dotenv().ok();
         let api_key = std::env::var("API_KEY").expect("API_KEY must be set.");
-    
+
         let mut client = FlightRadarClient::new(api_key);
         client.update_base_url("https://fr24api.flightradar24.com/api/sandbox/".to_string());
 
         client
     }
-    
+
     #[test]
     fn check_flight_tracks_by_id() {
         let client = setup_client();
         let flight_id = "390163bf"; // Must be hexcode
-    
+
         let flight_list: Vec<flightradar24_api::client::Flight> =
             match client.get_flight_tracks_by_id(flight_id) {
                 Ok(flight) => flight,
@@ -47,23 +47,24 @@ mod tests {
         assert_eq!(3, get_callsign_from_flight(&flight_list).len());
         assert_eq!(3, get_source_from_flight(&flight_list).len());
     }
-    
+
     #[test]
     fn check_api_usage() {
         dotenv().ok();
         let api_key = std::env::var("API_KEY").expect("API_KEY must be set.");
-    
+
         let mut client = FlightRadarClient::new(api_key);
         client.update_base_url("https://fr24api.flightradar24.com/api/sandbox/".to_string());
 
-        let api_usage: flightradar24_api::client::ApiUsageResponse = match client.get_api_usage("1y") {
-            Ok(usage) => usage,
-            Err(e) => {
-                eprintln!("Error fetching api usage data: {}", e);
-                ApiUsageResponse::default()
-            }
-        };
-    
+        let api_usage: flightradar24_api::client::ApiUsageResponse =
+            match client.get_api_usage("1y") {
+                Ok(usage) => usage,
+                Err(e) => {
+                    eprintln!("Error fetching api usage data: {}", e);
+                    ApiUsageResponse::default()
+                }
+            };
+
         assert_eq!(2, api_usage.data.len());
     }
 
@@ -71,7 +72,7 @@ mod tests {
     fn check_airline_by_icao() {
         dotenv().ok();
         let api_key = std::env::var("API_KEY").expect("API_KEY must be set.");
-    
+
         let mut client = FlightRadarClient::new(api_key);
         client.update_base_url("https://fr24api.flightradar24.com/api/sandbox/".to_string());
 
@@ -82,7 +83,7 @@ mod tests {
                 Airline::default()
             }
         };
-    
+
         assert_eq!(3, airline_info.icao.len());
     }
 
@@ -90,7 +91,7 @@ mod tests {
     fn check_aiport_by_code() {
         dotenv().ok();
         let api_key = std::env::var("API_KEY").expect("API_KEY must be set.");
-    
+
         let mut client = FlightRadarClient::new(api_key);
         client.update_base_url("https://fr24api.flightradar24.com/api/sandbox/".to_string());
 
@@ -101,7 +102,7 @@ mod tests {
                 Airport::default()
             }
         };
-    
+
         assert_eq!(4, airport_info.icao.len());
     }
 
@@ -109,10 +110,10 @@ mod tests {
     fn check_airport_light_by_code() {
         dotenv().ok();
         let api_key = std::env::var("API_KEY").expect("API_KEY must be set.");
-    
+
         let mut client = FlightRadarClient::new(api_key);
-        client.update_base_url("https://fr24api.flightradar24.com/api/sandbox/".to_string());    
-    
+        client.update_base_url("https://fr24api.flightradar24.com/api/sandbox/".to_string());
+
         let airport_info = match client.get_airport_lite_by_code("MCO") {
             Ok(airline) => airline,
             Err(e) => {
@@ -120,9 +121,9 @@ mod tests {
                 AirportLite::default()
             }
         };
-    
+
         assert_eq!(4, airport_info.icao.len());
-    }    
+    }
 
     #[test]
     fn check_get_live_flight() {
@@ -184,10 +185,10 @@ mod tests {
     fn check_get_live_flight_light() {
         dotenv().ok();
         let api_key = std::env::var("API_KEY").expect("API_KEY must be set.");
-    
+
         let mut client = FlightRadarClient::new(api_key);
         client.update_base_url("https://fr24api.flightradar24.com/api/sandbox/".to_string());
-    
+
         let input = FullLiveFlightQuery {
             bounds: Some(BOUNDS_IN),
             squawks: Some(vec![2222, 3333, 5555, 7777]),
@@ -225,7 +226,7 @@ mod tests {
             limit: Some(4444),
             //..FullLiveFlightQuery::default()
         };
-    
+
         let live_flight_light = match client.get_live_flight_light(Some(&input)) {
             Ok(live_data) => live_data,
             Err(e) => {
@@ -233,7 +234,7 @@ mod tests {
                 LightLiveFlightResponse::default()
             }
         };
-    
+
         assert_eq!(1, live_flight_light.data.len());
     }
 
@@ -241,10 +242,10 @@ mod tests {
     fn check_get_historic_flight() {
         dotenv().ok();
         let api_key = std::env::var("API_KEY").expect("API_KEY must be set.");
-    
+
         let mut client = FlightRadarClient::new(api_key);
         client.update_base_url("https://fr24api.flightradar24.com/api/sandbox/".to_string());
-    
+
         let input = FullLiveFlightQuery {
             bounds: Some(BOUNDS_IN),
             squawks: Some(vec![2222, 3333, 5555, 7777]),
@@ -282,7 +283,7 @@ mod tests {
             limit: Some(4444),
             //..FullLiveFlightQuery::default()
         };
-    
+
         let historic_flight = match client.get_historic_flight(&1739401921, Some(&input)) {
             Ok(live_data) => live_data,
             Err(e) => {
@@ -290,7 +291,7 @@ mod tests {
                 FullLiveFlightResponse::default()
             }
         };
-    
+
         assert_eq!(1, historic_flight.data.len());
     }
 
@@ -298,10 +299,10 @@ mod tests {
     fn check_get_historic_flight_light() {
         dotenv().ok();
         let api_key = std::env::var("API_KEY").expect("API_KEY must be set.");
-    
+
         let mut client = FlightRadarClient::new(api_key);
         client.update_base_url("https://fr24api.flightradar24.com/api/sandbox/".to_string());
-    
+
         let input = FullLiveFlightQuery {
             bounds: Some(BOUNDS_IN),
             squawks: Some(vec![2222, 3333, 5555, 7777]),
@@ -339,15 +340,16 @@ mod tests {
             limit: Some(4444),
             //..FullLiveFlightQuery::default()
         };
-    
-        let historic_flight_light = match client.get_historic_flight_light(&1739401921, Some(&input)) {
-            Ok(live_data) => live_data,
-            Err(e) => {
-                eprintln!("{}", e);
-                LightLiveFlightResponse::default()
-            }
-        };
-    
+
+        let historic_flight_light =
+            match client.get_historic_flight_light(&1739401921, Some(&input)) {
+                Ok(live_data) => live_data,
+                Err(e) => {
+                    eprintln!("{}", e);
+                    LightLiveFlightResponse::default()
+                }
+            };
+
         assert_eq!(2, historic_flight_light.data.len());
     }
 }

@@ -32,3 +32,7 @@ After this, functionality can be called however you'd like.
 The provided cargo tests are mainly for ensuring the parsers are able to get accurate data back in the structures. Please note that these will error out if run in quick succession as you are exceeding the rate limit.
 
 Tests can be run with `cargo test`.
+
+## Notes
+
+This package is not associated with FlightRadar24, please use at your own risk.
