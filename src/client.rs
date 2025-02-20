@@ -700,6 +700,7 @@ pub struct ApiRange {
     pub max: u32,
 }
 
+/// Allow range to be specific number or range
 #[derive(Debug, Deserialize)]
 pub enum ApiRangeEnum {
     U32(u32),
@@ -741,6 +742,7 @@ pub struct FullLiveFlightData {
     pub eta: String,
 }
 
+/// Data for light flight responses
 #[derive(Deserialize, Debug, Default)]
 pub struct LightLiveFlightResponse {
     pub data: Vec<LightLiveFlightData>,
