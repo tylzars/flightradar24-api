@@ -137,8 +137,10 @@ impl FlightRadarClient {
         if let Some(routes) = &params.routes {
             url.push_str("&routes=");
             for route in routes {
-                //TODO: Accurate check ICAO codes
-                if route.chars().all(|c| c.is_alphabetic() || c == '-') {
+                if route
+                    .chars()
+                    .all(|c| (c.is_alphabetic() && (c != 'i' || c != 'q' || c != 'x')) || c == '-')
+                {
                     url.push_str(&route.to_string());
                     url.push(',');
                 } else {
