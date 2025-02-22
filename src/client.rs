@@ -124,8 +124,7 @@ impl FlightRadarClient {
         if let Some(airports) = &params.airports {
             url.push_str("&airports=");
             for airport in airports {
-                //TODO: Accurate check ICAO codes
-                if airport.chars().all(|c| c.is_alphabetic() || c == ':') {
+                if airport.chars().all(|c| (c.is_alphabetic() && (c != 'i' || c != 'q' || c != 'x')) || c == ':') {
                     url.push_str(&airport.to_string());
                     url.push(',');
                 } else {
@@ -367,6 +366,12 @@ impl FlightRadarClient {
         };
 
         let params_back = Self::build_query_params(other_query_in)?;
+
+        // TODO: params_back should contain at least of the query params
+        if !params_back.contains("bounds") {
+            return Err(FlightRadarError::Parameter("Didn't Get Any Parameters".to_string()));
+        }
+
         let endpoint = format!("{}live/flight-positions/full{}", self.base_url, params_back);
 
         //println!("{}", endpoint);
