@@ -33,13 +33,15 @@ impl FlightRadarClient {
     ///   `String` of params on success or a `FlightRadarError` on failure.
     fn build_query_params(params: &FullLiveFlightQuery) -> Result<String, FlightRadarError> {
         let mut url: String = String::new();
+        let mut param_check: bool = false;
 
         if let Some(bounds) = &params.bounds {
             let bounds_str = format!(
                 "?bounds={},{},{},{}",
                 bounds.north, bounds.south, bounds.west, bounds.east
             );
-            url.push_str(&bounds_str)
+            url.push_str(&bounds_str);
+            param_check = true;
         }
         if let Some(flights) = &params.flights {
             url.push_str("&flights=");
@@ -52,6 +54,7 @@ impl FlightRadarClient {
                 }
             }
             url.pop();
+            param_check = true;
         }
         if let Some(callsigns) = &params.callsigns {
             url.push_str("&callsigns=");
@@ -70,6 +73,7 @@ impl FlightRadarClient {
                 }
             }
             url.pop();
+            param_check = true;
         }
         if let Some(registrations) = &params.registrations {
             url.push_str("&registrations=");
@@ -90,6 +94,7 @@ impl FlightRadarClient {
                 }
             }
             url.pop();
+            param_check = true;
         }
         if let Some(painted_as) = &params.painted_as {
             url.push_str("&painted_as=");
@@ -105,6 +110,7 @@ impl FlightRadarClient {
                 }
             }
             url.pop();
+            param_check = true;
         }
         if let Some(operating_as) = &params.operating_as {
             url.push_str("&operating_as=");
@@ -120,6 +126,7 @@ impl FlightRadarClient {
                 }
             }
             url.pop();
+            param_check = true;
         }
         if let Some(airports) = &params.airports {
             url.push_str("&airports=");
@@ -132,6 +139,7 @@ impl FlightRadarClient {
                 }
             }
             url.pop();
+            param_check = true;
         }
         if let Some(routes) = &params.routes {
             url.push_str("&routes=");
@@ -147,6 +155,7 @@ impl FlightRadarClient {
                 }
             }
             url.pop();
+            param_check = true;
         }
         if let Some(aircraft) = &params.aircraft {
             url.push_str("&aircraft=");
@@ -167,6 +176,7 @@ impl FlightRadarClient {
                 }
             }
             url.pop();
+            param_check = true;
         }
         if let Some(altitude_ranges) = &params.altitude_ranges {
             url.push_str("&altitude_ranges=");
@@ -177,6 +187,7 @@ impl FlightRadarClient {
                 url.push(',');
             }
             url.pop();
+            param_check = true;
         }
         if let Some(squawks) = &params.squawks {
             url.push_str("&squawks=");
@@ -189,6 +200,7 @@ impl FlightRadarClient {
                 }
             }
             url.pop();
+            param_check = true;
         }
         if let Some(categories) = &params.categories {
             url.push_str("&categories=");
@@ -204,6 +216,7 @@ impl FlightRadarClient {
                 }
             }
             url.pop();
+            param_check = true;
         }
         if let Some(data_sources) = &params.data_sources {
             let valid_data_sources = [
@@ -224,8 +237,10 @@ impl FlightRadarClient {
                 }
             }
             url.pop();
+            param_check = true;
         }
         if let Some(airspaces) = &params.airspaces {
+            //TODO: This doesn't matter for Historic endpoints
             url.push_str("&airspaces=");
             for airspace in airspaces {
                 if airspace.chars().all(char::is_alphabetic) {
@@ -239,6 +254,7 @@ impl FlightRadarClient {
                 }
             }
             url.pop();
+            param_check = true;
         }
         if let Some(gspeed) = &params.gspeed {
             match gspeed {
@@ -249,6 +265,7 @@ impl FlightRadarClient {
                     }
                     url.push_str("&gspeed=");
                     url.push_str(&val.to_string());
+                    param_check = true;
                 }
                 ApiRangeEnum::ApiRange(gspeed) => {
                     // Can't be greater than 5000
@@ -262,12 +279,17 @@ impl FlightRadarClient {
                     url.push_str(&gspeed.min.to_string());
                     url.push('-');
                     url.push_str(&gspeed.max.to_string());
+                    param_check = true;
                 }
             }
         };
         if let Some(limit) = &params.limit {
             url.push_str("&limit=");
             url.push_str(&limit.to_string());
+        }
+
+        if !param_check {
+            return Err(FlightRadarError::Parameter("Missing One Essential Parameter".to_string()))
         }
 
         Ok(url)
