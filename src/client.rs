@@ -33,7 +33,6 @@ impl FlightRadarClient {
     ///   `String` of params on success or a `FlightRadarError` on failure.
     fn build_query_params(params: &FullLiveFlightQuery) -> Result<String, FlightRadarError> {
         let mut url: String = String::new();
-        let mut param_check: bool = false;
 
         if let Some(bounds) = &params.bounds {
             let bounds_str = format!(
@@ -41,7 +40,6 @@ impl FlightRadarClient {
                 bounds.north, bounds.south, bounds.west, bounds.east
             );
             url.push_str(&bounds_str);
-            param_check = true;
         }
         if let Some(flights) = &params.flights {
             url.push_str("&flights=");
@@ -54,7 +52,6 @@ impl FlightRadarClient {
                 }
             }
             url.pop();
-            param_check = true;
         }
         if let Some(callsigns) = &params.callsigns {
             url.push_str("&callsigns=");
@@ -73,7 +70,6 @@ impl FlightRadarClient {
                 }
             }
             url.pop();
-            param_check = true;
         }
         if let Some(registrations) = &params.registrations {
             url.push_str("&registrations=");
@@ -94,7 +90,6 @@ impl FlightRadarClient {
                 }
             }
             url.pop();
-            param_check = true;
         }
         if let Some(painted_as) = &params.painted_as {
             url.push_str("&painted_as=");
@@ -110,7 +105,6 @@ impl FlightRadarClient {
                 }
             }
             url.pop();
-            param_check = true;
         }
         if let Some(operating_as) = &params.operating_as {
             url.push_str("&operating_as=");
@@ -126,12 +120,14 @@ impl FlightRadarClient {
                 }
             }
             url.pop();
-            param_check = true;
         }
         if let Some(airports) = &params.airports {
             url.push_str("&airports=");
             for airport in airports {
-                if airport.chars().all(|c| (c.is_alphabetic() && (c != 'i' || c != 'q' || c != 'x')) || c == ':') {
+                if airport
+                    .chars()
+                    .all(|c| (c.is_alphabetic() && (c != 'i' || c != 'q' || c != 'x')) || c == ':')
+                {
                     url.push_str(&airport.to_string());
                     url.push(',');
                 } else {
@@ -139,7 +135,6 @@ impl FlightRadarClient {
                 }
             }
             url.pop();
-            param_check = true;
         }
         if let Some(routes) = &params.routes {
             url.push_str("&routes=");
@@ -155,7 +150,6 @@ impl FlightRadarClient {
                 }
             }
             url.pop();
-            param_check = true;
         }
         if let Some(aircraft) = &params.aircraft {
             url.push_str("&aircraft=");
@@ -176,7 +170,6 @@ impl FlightRadarClient {
                 }
             }
             url.pop();
-            param_check = true;
         }
         if let Some(altitude_ranges) = &params.altitude_ranges {
             url.push_str("&altitude_ranges=");
@@ -187,7 +180,6 @@ impl FlightRadarClient {
                 url.push(',');
             }
             url.pop();
-            param_check = true;
         }
         if let Some(squawks) = &params.squawks {
             url.push_str("&squawks=");
@@ -200,7 +192,6 @@ impl FlightRadarClient {
                 }
             }
             url.pop();
-            param_check = true;
         }
         if let Some(categories) = &params.categories {
             url.push_str("&categories=");
@@ -216,7 +207,6 @@ impl FlightRadarClient {
                 }
             }
             url.pop();
-            param_check = true;
         }
         if let Some(data_sources) = &params.data_sources {
             let valid_data_sources = [
@@ -237,7 +227,6 @@ impl FlightRadarClient {
                 }
             }
             url.pop();
-            param_check = true;
         }
         if let Some(airspaces) = &params.airspaces {
             //TODO: This doesn't matter for Historic endpoints
@@ -254,7 +243,6 @@ impl FlightRadarClient {
                 }
             }
             url.pop();
-            param_check = true;
         }
         if let Some(gspeed) = &params.gspeed {
             match gspeed {
@@ -265,7 +253,6 @@ impl FlightRadarClient {
                     }
                     url.push_str("&gspeed=");
                     url.push_str(&val.to_string());
-                    param_check = true;
                 }
                 ApiRangeEnum::ApiRange(gspeed) => {
                     // Can't be greater than 5000
@@ -279,7 +266,6 @@ impl FlightRadarClient {
                     url.push_str(&gspeed.min.to_string());
                     url.push('-');
                     url.push_str(&gspeed.max.to_string());
-                    param_check = true;
                 }
             }
         };
@@ -288,11 +274,36 @@ impl FlightRadarClient {
             url.push_str(&limit.to_string());
         }
 
-        if !param_check {
-            return Err(FlightRadarError::Parameter("Missing One Essential Parameter".to_string()))
-        }
-
         Ok(url)
+    }
+
+    /// Check to ensure one API query is provided for endpoint
+    /// # Arguments
+    ///   * `query_in` - FullLiveFlightQuery to check
+    /// # Returns
+    ///   A `bool` based on check
+    pub fn check_parameters(query_in: &FullLiveFlightQuery) -> bool {
+        if query_in.aircraft.is_some()
+            || query_in.airports.is_some()
+            || query_in.airspaces.is_some()
+            || query_in.altitude_ranges.is_some()
+            || query_in.bounds.is_some()
+            || query_in.callsigns.is_some()
+            || query_in.categories.is_some()
+            || query_in.data_sources.is_some()
+            || query_in.flights.is_some()
+            || query_in.gspeed.is_some()
+            || query_in.operating_as.is_some()
+            || query_in.painted_as.is_some()
+            || query_in.registrations.is_some()
+            || query_in.routes.is_some()
+            || query_in.squawks.is_some()
+        {
+            return true;
+        };
+
+        // Needed parameter not found
+        false
     }
 
     /// Issue the GET command to API Endpoint
@@ -387,13 +398,14 @@ impl FlightRadarClient {
             _ => defualt_query_in,
         };
 
-        let params_back = Self::build_query_params(other_query_in)?;
-
-        // TODO: params_back should contain at least of the query params
-        if !params_back.contains("bounds") {
-            return Err(FlightRadarError::Parameter("Didn't Get Any Parameters".to_string()));
+        // If parameters not included, bailout
+        if !Self::check_parameters(other_query_in) {
+            return Err(FlightRadarError::Parameter(
+                "Missing One Of Required Parameters".to_string(),
+            ));
         }
 
+        let params_back = Self::build_query_params(other_query_in)?;
         let endpoint = format!("{}live/flight-positions/full{}", self.base_url, params_back);
 
         //println!("{}", endpoint);

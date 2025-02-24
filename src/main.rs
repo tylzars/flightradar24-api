@@ -69,15 +69,10 @@ fn main() {
         ..FullLiveFlightQuery::default()
     };
 
-    let bad_query_back = match client.get_live_flight(Some(&input_default)) {
-        Ok(live_data) => live_data,
-        Err(e) => {
-            eprintln!("{}", e);
-            FullLiveFlightResponse::default()
-        }
+    match client.get_live_flight(Some(&input_default)) {
+        Ok(live_data) => println!("Default Query: {:?}", live_data),
+        Err(e) => eprintln!("{}", e),
     };
-
-    println!("Default Query: {:?}", bad_query_back);
 
     let live_flight_light = match client.get_live_flight_light(Some(&input)) {
         Ok(live_data) => live_data,
