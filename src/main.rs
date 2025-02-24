@@ -74,43 +74,23 @@ fn main() {
         Err(e) => eprintln!("{}", e),
     };
 
-    let live_flight_light = match client.get_live_flight_light(Some(&input)) {
-        Ok(live_data) => live_data,
-        Err(e) => {
-            eprintln!("{}", e);
-            LightLiveFlightResponse::default()
-        }
+    match client.get_live_flight_light(Some(&input)) {
+        Ok(live_data) => println!("Light Flight Live Info: {:?}", live_data),
+        Err(e) => eprintln!("{}", e),
     };
 
-    println!("Light Flight Live Info: {:?}", live_flight_light);
-
-    let live_flight_light = match client.get_historic_flight(&1739401921, Some(&input)) {
-        Ok(live_data) => live_data,
-        Err(e) => {
-            eprintln!("{}", e);
-            FullLiveFlightResponse::default()
-        }
+    match client.get_historic_flight(&1739401921, Some(&input)) {
+        Ok(live_data) => println!("Historic Flight Info: {:?}", live_data),
+        Err(e) => eprintln!("{}", e),
     };
 
-    println!("Historic Flight Info: {:?}", live_flight_light);
-
-    let live_flight_light = match client.get_historic_flight_light(&1739401921, Some(&input)) {
-        Ok(live_data) => live_data,
-        Err(e) => {
-            eprintln!("{}", e);
-            LightLiveFlightResponse::default()
-        }
+    match client.get_historic_flight_light(&1739401921, Some(&input)) {
+        Ok(live_data) => println!("Light Historic Flight Info: {:?}", live_data),
+        Err(e) => eprintln!("{}", e),
     };
 
-    println!("Light Historic Flight Info: {:?}", live_flight_light);
-
-    let airline_info = match client.get_airline_by_icao("AAA") {
-        Ok(airline) => airline,
-        Err(e) => {
-            eprintln!("Error fetching flight data: {}", e);
-            Airline::default()
-        }
+    match client.get_airline_by_icao("AAA") {
+        Ok(airline) => println!("Airline Info: {:?}", airline),
+        Err(e) => eprintln!("{}", e),
     };
-
-    println!("Airline Info: {:?}", airline_info);
 }
