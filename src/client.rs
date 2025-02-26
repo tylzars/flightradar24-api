@@ -282,10 +282,33 @@ impl FlightRadarClient {
     ///   * `query_in` - FullLiveFlightQuery to check
     /// # Returns
     ///   A `bool` based on check
-    pub fn check_parameters(query_in: &FullLiveFlightQuery) -> bool {
+    pub fn check_live_parameters(query_in: &FullLiveFlightQuery) -> bool {
         if query_in.aircraft.is_some()
             || query_in.airports.is_some()
             || query_in.airspaces.is_some()
+            || query_in.altitude_ranges.is_some()
+            || query_in.bounds.is_some()
+            || query_in.callsigns.is_some()
+            || query_in.categories.is_some()
+            || query_in.data_sources.is_some()
+            || query_in.flights.is_some()
+            || query_in.gspeed.is_some()
+            || query_in.operating_as.is_some()
+            || query_in.painted_as.is_some()
+            || query_in.registrations.is_some()
+            || query_in.routes.is_some()
+            || query_in.squawks.is_some()
+        {
+            return true;
+        };
+
+        // Needed parameter not found
+        false
+    }
+
+    pub fn check_historic_parameters(query_in: &FullLiveFlightQuery) -> bool {
+        if query_in.aircraft.is_some()
+            || query_in.airports.is_some()
             || query_in.altitude_ranges.is_some()
             || query_in.bounds.is_some()
             || query_in.callsigns.is_some()
@@ -399,7 +422,7 @@ impl FlightRadarClient {
         };
 
         // If parameters not included, bailout
-        if !Self::check_parameters(other_query_in) {
+        if !Self::check_live_parameters(other_query_in) {
             return Err(FlightRadarError::Parameter(
                 "Missing One Of Required Parameters".to_string(),
             ));
@@ -478,6 +501,18 @@ impl FlightRadarClient {
                 timestamp
             )));
         };
+
+        // If parameters not included, bailout
+        let stuff = match other_queries {
+            Some(stuff) => stuff,
+            None => &FullLiveFlightQuery::default(),
+        };
+
+        if !Self::check_historic_parameters(stuff) {
+            return Err(FlightRadarError::Parameter(
+                "Missing One Of Required Parameters".to_string(),
+            ));
+        }
 
         // Build optional params
         let params_back = if let Some(other_queries) = other_queries {
