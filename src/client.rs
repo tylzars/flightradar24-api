@@ -9,6 +9,7 @@ pub struct FlightRadarClient {
     api_key: String,
 }
 
+/// FlightRadarClient for interacting with API
 impl FlightRadarClient {
     /// Creates a new instance of the client.
     /// # Arguments
@@ -282,7 +283,7 @@ impl FlightRadarClient {
     ///   * `query_in` - FullLiveFlightQuery to check
     /// # Returns
     ///   A `bool` based on check
-    pub fn check_live_parameters(query_in: &FullLiveFlightQuery) -> bool {
+    fn check_live_parameters(query_in: &FullLiveFlightQuery) -> bool {
         if query_in.aircraft.is_some()
             || query_in.airports.is_some()
             || query_in.airspaces.is_some()
@@ -306,7 +307,12 @@ impl FlightRadarClient {
         false
     }
 
-    pub fn check_historic_parameters(query_in: &FullLiveFlightQuery) -> bool {
+    /// Check to ensure one API query is provided for endpoint
+    /// # Arguments
+    ///   * `query_in` - FullLiveFlightQuery to check
+    /// # Returns
+    ///   A `bool` based on check
+    fn check_historic_parameters(query_in: &FullLiveFlightQuery) -> bool {
         if query_in.aircraft.is_some()
             || query_in.airports.is_some()
             || query_in.altitude_ranges.is_some()
