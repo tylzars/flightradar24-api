@@ -463,6 +463,13 @@ impl FlightRadarClient {
             _ => defualt_query_in,
         };
 
+        // If parameters not included, bailout
+        if !Self::check_live_parameters(other_query_in) {
+            return Err(FlightRadarError::Parameter(
+                "Missing One Of Required Parameters".to_string(),
+            ));
+        }
+
         let params_back = Self::build_query_params(other_query_in)?;
         let endpoint = format!("{}live/flight-positions/full{}", self.base_url, params_back);
 
@@ -562,6 +569,18 @@ impl FlightRadarClient {
                 timestamp
             )));
         };
+
+        // If parameters not included, bailout
+        let stuff = match other_queries {
+            Some(stuff) => stuff,
+            None => &FullLiveFlightQuery::default(),
+        };
+
+        if !Self::check_historic_parameters(stuff) {
+            return Err(FlightRadarError::Parameter(
+                "Missing One Of Required Parameters".to_string(),
+            ));
+        }
 
         // Build optional params
         let params_back = if let Some(other_queries) = other_queries {
