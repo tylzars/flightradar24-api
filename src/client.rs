@@ -230,7 +230,6 @@ impl FlightRadarClient {
             url.pop();
         }
         if let Some(airspaces) = &params.airspaces {
-            //TODO: This doesn't matter for Historic endpoints
             url.push_str("&airspaces=");
             for airspace in airspaces {
                 if airspace.chars().all(char::is_alphabetic) {
@@ -437,14 +436,11 @@ impl FlightRadarClient {
         let params_back = Self::build_query_params(other_query_in)?;
         let endpoint = format!("{}live/flight-positions/full{}", self.base_url, params_back);
 
-        //println!("{}", endpoint);
-
         // GET
         let text = match self.query_endpoint(endpoint) {
             Ok(data) => data,
             Err(_) => return Err(FlightRadarError::General("GET Request Failed".to_string())),
         };
-        //println!("{:?}", text);
 
         // Parse
         let live_data: FullLiveFlightResponse = serde_json::from_str(&text)
@@ -479,14 +475,11 @@ impl FlightRadarClient {
         let params_back = Self::build_query_params(other_query_in)?;
         let endpoint = format!("{}live/flight-positions/full{}", self.base_url, params_back);
 
-        //println!("{}", endpoint);
-
         // GET
         let text = match self.query_endpoint(endpoint) {
             Ok(data) => data,
             Err(_) => return Err(FlightRadarError::General("GET Request Failed".to_string())),
         };
-        //println!("{:?}", text);
 
         // Parse
         let live_data: LightLiveFlightResponse = serde_json::from_str(&text)
@@ -547,7 +540,6 @@ impl FlightRadarClient {
             Ok(data) => data,
             Err(_) => return Err(FlightRadarError::General("GET Request Failed".to_string())),
         };
-        //println!("{:?}", text);
 
         // Parse
         let historic_data: FullLiveFlightResponse = serde_json::from_str(&text)
@@ -608,7 +600,6 @@ impl FlightRadarClient {
             Ok(data) => data,
             Err(_) => return Err(FlightRadarError::General("GET Request Failed".to_string())),
         };
-        //println!("{:?}", text);
 
         // Parse
         let historic_data: LightLiveFlightResponse = serde_json::from_str(&text)
@@ -640,7 +631,6 @@ impl FlightRadarClient {
             Ok(data) => data,
             Err(_) => return Err(FlightRadarError::General("GET Request Failed".to_string())),
         };
-        //println!("{:?}", text);
 
         // Parse
         let flights: Vec<Flight> = serde_json::from_str(&text)
@@ -670,7 +660,6 @@ impl FlightRadarClient {
             Ok(data) => data,
             Err(_) => return Err(FlightRadarError::General("GET Request Failed".to_string())),
         };
-        //println!("{:?}", text);
 
         // Parse
         let usage: ApiUsageResponse = serde_json::from_str(&text)

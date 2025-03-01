@@ -14,7 +14,7 @@ Add dependency to `Cargo.toml`:
 
 ```toml
 [dependencies]
-flightradar24_api = "0.1.0"
+flightradar24_api = "0.2.0"
 ```
 
 To start using this crate in your code:
